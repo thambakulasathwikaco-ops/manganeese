@@ -6,6 +6,7 @@ import { forecastService } from '../services/forecastService';
 import { riskService } from '../services/riskService';
 import { LocationIntelligenceSection } from '../components/LocationIntelligenceSection';
 import { MapPin, TrendingUp, ShieldAlert, Cpu, ArrowRight } from 'lucide-react';
+import { CardGrid, StatCard, FeatureCard } from '../components/ui/Card';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,8 +25,7 @@ export const LandingPage: React.FC = () => {
       title: 'Manganese Prospectivity AI',
       desc: 'Ensemble multi-spectral & borehole core sample analytics predicting deposit high-potential zones.',
       route: '/manganese-map',
-      badge: `${highPotentialZonesCount} High Potential Zones`,
-      iconBg: 'clay-recessed text-sage-light'
+      badge: `${highPotentialZonesCount} High Potential Zones`
     },
     {
       id: 'forecasting',
@@ -33,8 +33,7 @@ export const LandingPage: React.FC = () => {
       title: '30-Day Production Forecasting',
       desc: 'Multi-factor operational model accounting for equipment downtime, weather, and transport readiness.',
       route: '/production',
-      badge: `${predictedProduction.toLocaleString()} MT Output`,
-      iconBg: 'clay-recessed text-sage-light'
+      badge: `${predictedProduction.toLocaleString()} MT Output`
     },
     {
       id: 'shortfall',
@@ -42,8 +41,7 @@ export const LandingPage: React.FC = () => {
       title: 'Shortfall & Bottleneck Attribution',
       desc: 'Dynamic risk quantification decomposing operational losses into normalized percentage drivers.',
       route: '/shortfall',
-      badge: `${riskLevel} RISK (${shortfallPct}% Gap)`,
-      iconBg: 'clay-recessed text-olive-accent'
+      badge: `${riskLevel} RISK (${shortfallPct}% Gap)`
     },
     {
       id: 'recommendations',
@@ -51,8 +49,7 @@ export const LandingPage: React.FC = () => {
       title: 'Autonomous Decision Intelligence',
       desc: 'Actionable recommendations with one-click acceptance, quantified tonnage impact, and audit tracking.',
       route: '/dashboard#recommendations',
-      badge: `${pendingRecsCount} Actionable Items`,
-      iconBg: 'clay-recessed text-ivory-warm'
+      badge: `${pendingRecsCount} Actionable Items`
     }
   ];
 
@@ -65,15 +62,15 @@ export const LandingPage: React.FC = () => {
       {/* Landing Header */}
       <header className="px-6 py-6 max-w-7xl mx-auto w-full flex items-center justify-between z-10">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <div className="w-9 h-9 rounded-xl bg-[#1D2517] border border-clay-border flex items-center justify-center text-sage-light font-black text-lg shadow-inner">
+          <div className="w-9 h-9 rounded-xl bg-[#1D2517] border border-[#252E1D] flex items-center justify-center text-[#A4B18A] font-black text-lg shadow-inner">
             M
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-[#F1F2E9] tracking-tight text-base">MOIL SMARTMINE</span>
-              <span className="text-[10px] font-mono font-bold bg-[#0B0E09] text-sage-light px-2 py-0.5 rounded-md border border-clay-border shadow-inner">AI</span>
+              <span className="text-[10px] font-mono font-bold bg-[#0B0E09] text-[#A4B18A] px-2 py-0.5 rounded-md border border-[#252E1D] shadow-inner">AI</span>
             </div>
-            <p className="text-[9px] font-mono text-clay-muted tracking-widest uppercase">PREDICT. PLAN. PRODUCE.</p>
+            <p className="text-[9px] font-mono text-[#71825B] tracking-widest uppercase">PREDICT. PLAN. PRODUCE.</p>
           </div>
         </div>
 
@@ -86,7 +83,7 @@ export const LandingPage: React.FC = () => {
           </button>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-5 py-2.5 btn-clay-primary text-xs transition flex items-center gap-2 cursor-pointer uppercase tracking-wider"
+            className="px-5 py-2.5 btn-clay-primary text-xs transition flex items-center gap-2 cursor-pointer uppercase tracking-wider font-extrabold"
           >
             <span>ENTER SMARTMINE</span>
             <ArrowRight size={14} />
@@ -102,7 +99,7 @@ export const LandingPage: React.FC = () => {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className="text-xs sm:text-sm font-mono font-bold tracking-[0.25em] uppercase text-sage-light mb-4 sm:mb-6"
+          className="text-xs sm:text-sm font-mono font-bold tracking-[0.25em] uppercase text-[#A4B18A] mb-4 sm:mb-6"
         >
           MOIL SMARTMINE AI
         </motion.div>
@@ -144,7 +141,6 @@ export const LandingPage: React.FC = () => {
           transition={{ duration: 0.4, delay: 0.45 }}
           className="flex flex-col sm:flex-row items-center gap-4 mb-12 sm:mb-16"
         >
-          {/* Primary Raised Light-Olive / Ivory Button */}
           <button
             onClick={() => navigate('/dashboard')}
             className="w-full sm:w-auto px-8 py-3.5 btn-clay-primary text-sm transition flex items-center justify-center gap-3 group cursor-pointer uppercase tracking-wider font-extrabold"
@@ -153,92 +149,67 @@ export const LandingPage: React.FC = () => {
             <ArrowRight size={16} className="group-hover:translate-x-1 transition" />
           </button>
           
-          {/* Secondary Dark Olive Clay Surface with Sage Border Highlight */}
           <button
             onClick={() => navigate('/manganese-map')}
             className="w-full sm:w-auto px-8 py-3.5 btn-clay-secondary text-sm transition flex items-center justify-center gap-2 cursor-pointer font-bold uppercase tracking-wider"
           >
-            <MapPin size={16} className="text-sage-light" />
+            <MapPin size={16} className="text-[#A4B18A]" />
             <span>VIEW MANGANESE MAP</span>
           </button>
         </motion.div>
 
-        {/* Location Intelligence Console (Single Sculpted Instrument) */}
+        {/* Location Intelligence Console */}
         <LocationIntelligenceSection />
 
-        {/* Metrics Ticker Row */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.25 }}
-          className="mt-10 w-full max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 text-left"
-        >
-          <div className="clay-recessed p-4 rounded-xl">
-            <div className="text-[10px] uppercase font-mono text-clay-muted font-bold tracking-wider">Prospectivity Model</div>
-            <div className="text-xl font-extrabold text-[#F1F2E9] font-mono mt-1">94.2% AUC</div>
-            <div className="text-[11px] text-clay-muted font-mono mt-0.5">Spatial Core Assays</div>
-          </div>
-          <div className="clay-recessed p-4 rounded-xl">
-            <div className="text-[10px] uppercase font-mono text-clay-muted font-bold tracking-wider">Production Forecast</div>
-            <div className="text-xl font-extrabold text-sage-light font-mono mt-1">{predictedProduction.toLocaleString()} MT</div>
-            <div className="text-[11px] text-clay-muted font-mono mt-0.5">30-Day Multi-Factor</div>
-          </div>
-          <div className="clay-recessed p-4 rounded-xl">
-            <div className="text-[10px] uppercase font-mono text-clay-muted font-bold tracking-wider">Shortfall Risk</div>
-            <div className="text-xl font-extrabold text-olive-accent font-mono mt-1">
-              {riskLevel}
-            </div>
-            <div className="text-[11px] text-clay-muted font-mono mt-0.5">{shortfallPct}% Target Variance</div>
-          </div>
-          <div className="clay-recessed p-4 rounded-xl">
-            <div className="text-[10px] uppercase font-mono text-clay-muted font-bold tracking-wider">Evaluated Mine Zones</div>
-            <div className="text-xl font-extrabold text-ivory-warm font-mono mt-1">{zones.length} Zones</div>
-            <div className="text-[11px] text-clay-muted font-mono mt-0.5">Dongri-Mansar Belt</div>
-          </div>
-        </motion.div>
+        {/* Metrics Ticker Row using StatCard inside CardGrid */}
+        <div className="mt-10 w-full max-w-4xl text-left">
+          <CardGrid columns={4}>
+            <StatCard
+              title="Prospectivity Model"
+              value="94.2% AUC"
+              subtext="Spatial Core Assays"
+            />
+            <StatCard
+              title="Production Forecast"
+              value={`${predictedProduction.toLocaleString()} MT`}
+              subtext="30-Day Multi-Factor"
+            />
+            <StatCard
+              title="Shortfall Risk"
+              value={riskLevel}
+              subtext={`${shortfallPct}% Target Variance`}
+            />
+            <StatCard
+              title="Evaluated Mine Zones"
+              value={`${zones.length} Zones`}
+              subtext="Dongri-Mansar Belt"
+            />
+          </CardGrid>
+        </div>
 
-        {/* 4 Core Intelligence Cards Grid */}
-        <div className="mt-14 w-full max-w-5xl text-left grid grid-cols-1 md:grid-cols-2 gap-5">
-          {features.map((feat) => {
-            const Icon = feat.icon;
-            return (
-              <motion.div
+        {/* 4 Core Intelligence Feature Cards Grid */}
+        <div className="mt-10 w-full max-w-5xl text-left">
+          <CardGrid columns={2}>
+            {features.map((feat) => (
+              <FeatureCard
                 key={feat.id}
-                whileHover={{ y: -2 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                title={feat.title}
+                description={feat.desc}
+                icon={feat.icon}
+                badge={feat.badge}
+                actionText="LAUNCH MODULE"
                 onClick={() => navigate(feat.route)}
-                className="clay-card clay-card-hover p-6 cursor-pointer space-y-4 group relative overflow-hidden"
-              >
-                <div className="flex items-center justify-between">
-                  <div className={`p-3 rounded-xl ${feat.iconBg} border border-clay-border shadow-inner`}>
-                    <Icon size={18} />
-                  </div>
-                  <span className="text-[10px] font-mono font-bold uppercase clay-recessed text-chrome-plat px-3 py-1 rounded-full border border-clay-border">
-                    {feat.badge}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-base font-extrabold text-[#F1F2E9] group-hover:text-sage-light transition">{feat.title}</h3>
-                  <p className="text-xs text-clay-muted leading-relaxed mt-1.5">{feat.desc}</p>
-                </div>
-
-                <div className="pt-1 flex items-center gap-1 text-xs font-mono font-bold text-sage-light group-hover:translate-x-1 transition duration-200 uppercase tracking-wider">
-                  <span>LAUNCH MODULE</span>
-                  <ArrowRight size={14} />
-                </div>
-              </motion.div>
-            );
-          })}
+              />
+            ))}
+          </CardGrid>
         </div>
       </main>
 
       {/* Landing Footer */}
-      <footer className="px-6 py-6 border-t border-clay-border max-w-7xl mx-auto w-full text-center sm:flex items-center justify-between text-xs text-clay-muted font-mono z-10">
+      <footer className="px-6 py-6 border-t border-[#252E1D] max-w-7xl mx-auto w-full text-center sm:flex items-center justify-between text-xs text-[#71825B] font-mono z-10">
         <div>MOIL SMARTMINE AI — Operational Intelligence Platform</div>
-        <div className="mt-2 sm:mt-0 text-clay-muted">Built with React, TypeScript, Leaflet & Recharts</div>
+        <div className="mt-2 sm:mt-0">Built with React, TypeScript, Leaflet & Recharts</div>
       </footer>
     </div>
   );
 };
-

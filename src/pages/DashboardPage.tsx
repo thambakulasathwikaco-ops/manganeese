@@ -8,6 +8,7 @@ import { RecommendedStepsCard } from '../components/RecommendedStepsCard';
 import { AiAnalysisModal } from '../components/AiAnalysisModal';
 import { useAppStore } from '../store/useAppStore';
 import { Cpu, ArrowRight, ArrowLeft } from 'lucide-react';
+import { CardGrid } from '../components/ui/Card';
 
 export const DashboardPage: React.FC = () => {
   const location = useLocation();
@@ -23,7 +24,6 @@ export const DashboardPage: React.FC = () => {
     }
   }, [location]);
 
-  // Handle Back Navigation with Fallback to Manganese Map
   const handleGoBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
@@ -37,7 +37,6 @@ export const DashboardPage: React.FC = () => {
       {/* Top Banner & Quick Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          {/* Tactile Compact Back Button */}
           <button
             onClick={handleGoBack}
             className="btn-clay-secondary px-3 py-2 rounded-xl text-xs font-mono font-bold text-[#A4B18A] hover:text-[#F1F2E9] flex items-center justify-center gap-1.5 cursor-pointer transition border border-[#252E1D] shadow-sm shrink-0 active:translate-y-px"
@@ -85,20 +84,18 @@ export const DashboardPage: React.FC = () => {
       {/* Dynamic Executive Narrative Summary */}
       <ExecutiveSummaryBanner />
 
-      {/* 4 Primary Intelligence Modules (2x2 Grid) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* 4 Primary Intelligence Modules in CardGrid */}
+      <CardGrid columns={2}>
         <ProspectivityCard />
         <ProductionForecastCard />
         <ShortfallRiskCard />
         <div id="recommendations-section">
           <RecommendedStepsCard />
         </div>
-      </div>
+      </CardGrid>
 
       {/* AI Pipeline Loading Modal */}
       <AiAnalysisModal />
     </div>
   );
 };
-
-

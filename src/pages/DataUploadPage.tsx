@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { dataService } from '../services/dataService';
 import type { DatasetType } from '../types';
-import { UploadCloud, FileSpreadsheet, Download, AlertTriangle } from 'lucide-react';
+import { UploadCloud, FileSpreadsheet, Download, AlertTriangle, Database } from 'lucide-react';
+import { PrimaryCard, EmptyStateCard, Card, CardBadge } from '../components/ui/Card';
 
 export const DataUploadPage: React.FC = () => {
   const { uploadDataset, processUploadedDataset, uploadedDatasets, runFullAiAnalysis } = useAppStore();
@@ -36,13 +37,14 @@ export const DataUploadPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-black text-[#F1F2E9] tracking-tight">CSV Data Integration & Quality Engine</h1>
-            <span className="clay-recessed border border-[#252E1D] text-[#A4B18A] text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-[#0B0E09]">
+            <h1 className="text-2xl font-black text-[#F1F2E9] tracking-tight">
+              CSV Data Integration & Quality Engine
+            </h1>
+            <span className="bg-[#0B0E09] border border-[#252E1D] text-[#A4B18A] text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
               DATA PIPELINE
             </span>
           </div>
@@ -52,7 +54,7 @@ export const DataUploadPage: React.FC = () => {
         </div>
 
         {/* Template Downloads */}
-        <div className="flex items-center gap-2 font-mono text-xs">
+        <div className="flex items-center gap-2 font-mono text-xs flex-wrap">
           <span className="text-[#71825B] font-semibold hidden sm:inline">Templates:</span>
           {(['Production', 'Equipment', 'Weather', 'Borehole', 'Geological'] as DatasetType[]).map((t) => (
             <button
@@ -70,125 +72,145 @@ export const DataUploadPage: React.FC = () => {
 
       {/* Upload Box & Dataset Selection Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
         {/* Left Column: Drag & Drop Dropzone */}
-        <div className="clay-card p-6 rounded-2xl space-y-4 border border-[#252E1D]">
-          <div className="space-y-2">
-            <label className="text-xs font-mono uppercase font-bold tracking-wider text-[#71825B]">Select Dataset Type</label>
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              {(['Production', 'Equipment', 'Weather', 'Borehole', 'Geological'] as DatasetType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedType(type)}
-                  className={`py-2 px-3 rounded-xl text-left font-bold transition cursor-pointer ${
-                    selectedType === type
-                      ? 'btn-clay-primary text-[#0B0E09]'
-                      : 'clay-recessed text-[#71825B] hover:text-[#F1F2E9]'
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Drag & Drop Target Area */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-            onDragLeave={() => setDragActive(false)}
-            onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-2xl p-8 text-center flex flex-col items-center justify-center transition cursor-pointer ${
-              dragActive
-                ? 'border-[#A4B18A] bg-[#1D2517]'
-                : 'border-[#252E1D] hover:border-[#71825B] bg-[#0B0E09]'
-            }`}
-            onClick={() => {
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.accept = '.csv';
-              input.onchange = (e: any) => {
-                if (e.target.files && e.target.files[0]) {
-                  handleFileUpload(e.target.files[0]);
-                }
-              };
-              input.click();
-            }}
-          >
-            <UploadCloud size={40} className="text-[#A4B18A] mb-3 animate-pulse" />
-            <h3 className="font-extrabold text-[#F1F2E9] text-sm">Drag & Drop {selectedType} CSV File</h3>
-            <p className="text-xs text-[#71825B] mt-1">or click to browse local files</p>
-            <span className="mt-3 text-[10px] font-mono bg-[#171D12] border border-[#252E1D] text-[#A4B18A] px-2.5 py-1 rounded-full uppercase tracking-wider">
-              CSV UTF-8 Standard
-            </span>
-          </div>
-
-          {uploadError && (
-            <div className="p-3 clay-recessed border border-[#71825B] rounded-xl text-xs text-[#F1F2E9] flex items-center gap-2">
-              <AlertTriangle size={16} className="shrink-0 text-[#A4B18A]" />
-              <span>{uploadError}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column (2 cols): Uploaded Datasets List & Validation Reports */}
-        <div className="lg:col-span-2 clay-card p-6 rounded-2xl space-y-4 border border-[#252E1D]">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1D2517]">
-            <h3 className="font-bold text-[#F1F2E9] text-base">Processed Operational Datasets</h3>
-            <span className="text-xs font-mono text-[#71825B]">{uploadedDatasets.length} Uploaded</span>
-          </div>
-
+        <PrimaryCard title="Upload Operational Data" icon={UploadCloud}>
           <div className="space-y-4">
-            {uploadedDatasets.length === 0 ? (
-              <div className="py-12 text-center text-[#71825B] text-xs font-mono clay-recessed rounded-xl border border-dashed border-[#252E1D]">
-                No datasets uploaded in this session yet. Upload a CSV file or download a template above.
+            <div className="space-y-2">
+              <label className="text-xs font-mono uppercase font-bold tracking-wider text-[#71825B]">
+                Select Dataset Type
+              </label>
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                {(['Production', 'Equipment', 'Weather', 'Borehole', 'Geological'] as DatasetType[]).map(
+                  (type) => (
+                    <button
+                      key={type}
+                      onClick={() => setSelectedType(type)}
+                      className={`py-2 px-3 rounded-xl text-left font-bold transition cursor-pointer ${
+                        selectedType === type
+                          ? 'btn-clay-primary text-[#0B0E09]'
+                          : 'bg-[#0B0E09] border border-[#252E1D] text-[#71825B] hover:text-[#F1F2E9]'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  )
+                )}
               </div>
-            ) : (
-              uploadedDatasets.map((ds) => (
-                <div
-                  key={ds.fileId}
-                  className="clay-recessed p-4 rounded-xl space-y-3 border border-[#252E1D]"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <FileSpreadsheet className="text-[#A4B18A] shrink-0" size={20} />
-                      <div>
-                        <h4 className="font-bold text-[#F1F2E9] text-sm">{ds.fileName}</h4>
-                        <span className="text-[10px] font-mono text-[#71825B]">
-                          {ds.type} • {ds.rowCount} rows • {ds.columnCount} columns
-                        </span>
-                      </div>
-                    </div>
+            </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="text-right font-mono">
-                        <span className="text-[10px] text-[#71825B] uppercase">Quality Score</span>
-                        <div className="text-base font-extrabold text-[#A4B18A]">{ds.qualityScore}%</div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          processUploadedDataset(ds.fileId);
-                          runFullAiAnalysis();
-                        }}
-                        className="btn-clay-primary text-xs font-extrabold px-3.5 py-1.5 rounded-lg uppercase tracking-wider text-[#0B0E09] cursor-pointer"
-                      >
-                        PROCESS DATA
-                      </button>
-                    </div>
-                  </div>
+            {/* Drag & Drop Target Area */}
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-2xl p-8 text-center flex flex-col items-center justify-center transition cursor-pointer ${
+                dragActive
+                  ? 'border-[#A4B18A] bg-[#1D2517]'
+                  : 'border-[#252E1D] hover:border-[#71825B] bg-[#0B0E09]'
+              }`}
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.csv';
+                input.onchange = (e: any) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleFileUpload(e.target.files[0]);
+                  }
+                };
+                input.click();
+              }}
+            >
+              <UploadCloud size={40} className="text-[#A4B18A] mb-3 animate-pulse" />
+              <h3 className="font-extrabold text-[#F1F2E9] text-sm">
+                Drag & Drop {selectedType} CSV File
+              </h3>
+              <p className="text-xs text-[#71825B] mt-1">or click to browse local files</p>
+              <CardBadge variant="olive" className="mt-3">
+                CSV UTF-8 Standard
+              </CardBadge>
+            </div>
 
-                  {/* Validation Stats */}
-                  <div className="grid grid-cols-3 gap-2 text-[11px] font-mono text-[#71825B] bg-[#0B0E09] p-2.5 rounded-lg border border-[#252E1D]">
-                    <div>Missing Values: <span className="text-[#F1F2E9]">{ds.missingValuesCount}</span></div>
-                    <div>Duplicate Rows: <span className="text-[#F1F2E9]">{ds.duplicateRowsCount}</span></div>
-                    <div>Invalid Numbers: <span className="text-[#F1F2E9]">{ds.invalidValuesCount}</span></div>
-                  </div>
-                </div>
-              ))
+            {uploadError && (
+              <div className="p-3 bg-[#0B0E09] border border-[#71825B] rounded-xl text-xs text-[#F1F2E9] flex items-center gap-2">
+                <AlertTriangle size={16} className="shrink-0 text-[#A4B18A]" />
+                <span>{uploadError}</span>
+              </div>
             )}
           </div>
+        </PrimaryCard>
+
+        {/* Right Column (2 cols): Processed Datasets List */}
+        <div className="lg:col-span-2">
+          <PrimaryCard
+            title="Processed Operational Datasets"
+            subtitle="AUTOMATED VALIDATION PIPELINE"
+            badge={`${uploadedDatasets.length} UPLOADED`}
+          >
+            <div className="space-y-4">
+              {uploadedDatasets.length === 0 ? (
+                <EmptyStateCard
+                  icon={Database}
+                  title="No Datasets Uploaded"
+                  description="No operational datasets uploaded in this session yet. Upload a CSV file or download a template above."
+                />
+              ) : (
+                uploadedDatasets.map((ds) => (
+                  <Card key={ds.fileId} variant="list" padding="md">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-[#1D2517] border border-[#252E1D] text-[#A4B18A]">
+                          <FileSpreadsheet size={20} />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-[#F1F2E9] text-sm">{ds.fileName}</h4>
+                          <span className="text-[10px] font-mono text-[#71825B]">
+                            {ds.type} • {ds.rowCount} rows • {ds.columnCount} columns
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="text-right font-mono">
+                          <span className="text-[10px] text-[#71825B] uppercase block">
+                            Quality Score
+                          </span>
+                          <div className="text-base font-extrabold text-[#A4B18A]">
+                            {ds.qualityScore}%
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            processUploadedDataset(ds.fileId);
+                            runFullAiAnalysis();
+                          }}
+                          className="btn-clay-primary text-xs font-extrabold px-3.5 py-2 rounded-lg uppercase tracking-wider text-[#0B0E09] cursor-pointer"
+                        >
+                          PROCESS DATA
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-[11px] font-mono text-[#71825B] bg-[#0B0E09] p-2.5 rounded-lg border border-[#252E1D] mt-3">
+                      <div>
+                        Missing Values: <span className="text-[#F1F2E9]">{ds.missingValuesCount}</span>
+                      </div>
+                      <div>
+                        Duplicate Rows: <span className="text-[#F1F2E9]">{ds.duplicateRowsCount}</span>
+                      </div>
+                      <div>
+                        Invalid Numbers: <span className="text-[#F1F2E9]">{ds.invalidValuesCount}</span>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </PrimaryCard>
         </div>
       </div>
     </div>
   );
 };
-
