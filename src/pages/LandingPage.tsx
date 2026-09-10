@@ -5,7 +5,7 @@ import { useAppStore } from '../store/useAppStore';
 import { forecastService } from '../services/forecastService';
 import { riskService } from '../services/riskService';
 import { LocationIntelligenceSection } from '../components/LocationIntelligenceSection';
-import { MapPin, TrendingUp, ShieldAlert, Cpu, Sparkles, ArrowRight } from 'lucide-react';
+import { MapPin, TrendingUp, ShieldAlert, Cpu, ArrowRight } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -95,58 +95,54 @@ export const LandingPage: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-6 py-10 text-center z-10 flex-1 flex flex-col justify-center items-center">
+      <main className="max-w-6xl mx-auto px-6 py-12 sm:py-20 text-center z-10 flex-1 flex flex-col justify-center items-center">
         
-        {/* Prototype Pill Badge */}
+        {/* Eyebrow */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full clay-recessed text-clay-muted text-xs font-mono mb-6 border border-clay-border uppercase tracking-wider"
+          transition={{ duration: 0.4, delay: 0.05 }}
+          className="text-xs sm:text-sm font-mono font-bold tracking-[0.25em] uppercase text-sage-light mb-4 sm:mb-6"
         >
-          <Sparkles size={13} className="text-sage-light" />
-          <span>PRODUCTION-QUALITY OPERATIONAL PROTOTYPE</span>
+          MOIL SMARTMINE AI
         </motion.div>
 
-        {/* Small Technical Label */}
+        {/* Main Hero Headline */}
+        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[0.95] max-w-5xl text-center mb-6 sm:mb-8">
+          <motion.span
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="block text-[#F1F2E9] uppercase tracking-[0.01em]"
+          >
+            MANGANESE
+          </motion.span>
+          <motion.span
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+            className="block text-[#A4B18A] uppercase tracking-[0.01em]"
+          >
+            INTELLIGENCE, REIMAGINED.
+          </motion.span>
+        </h1>
+
+        {/* Tagline */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="text-xs font-mono font-bold uppercase tracking-widest text-sage mb-2"
+          transition={{ duration: 0.4, delay: 0.35 }}
+          className="text-xs sm:text-sm md:text-base font-mono font-bold tracking-[0.3em] uppercase text-[#C0C6B2] mb-10 sm:mb-14"
         >
-          PROSPECTIVITY & PRODUCTION INTELLIGENCE
+          PREDICT. PLAN. PRODUCE.
         </motion.div>
-
-        {/* Large Hero Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="text-4xl sm:text-6xl font-black text-[#F1F2E9] tracking-tight max-w-4xl leading-tight"
-        >
-          AI-Driven Manganese Mining <br className="hidden sm:inline" />
-          <span className="text-[#A4B18A]">
-            Intelligence Command Center
-          </span>
-        </motion.h1>
-
-        {/* Short Supporting Statement */}
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.15 }}
-          className="mt-6 text-base sm:text-lg text-[#C0C6B2] max-w-2xl font-sans leading-relaxed"
-        >
-          Empowering MOIL mining operations with real-time manganese reserve prediction, multi-factor production forecasting, shortfall bottleneck attribution, and autonomous decision recommendations.
-        </motion.p>
 
         {/* Hero Action Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="mt-8 flex flex-col sm:flex-row items-center gap-4"
+          transition={{ duration: 0.4, delay: 0.45 }}
+          className="flex flex-col sm:flex-row items-center gap-4 mb-12 sm:mb-16"
         >
           {/* Primary Raised Light-Olive / Ivory Button */}
           <button
