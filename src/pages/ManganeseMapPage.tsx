@@ -148,7 +148,9 @@ export const ManganeseMapPage: React.FC = () => {
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Clean up existing instance if retrying
+    let isMounted = true;
+
+    // Clean up existing instance if retrying or changing style mode
     if (mapRef.current) {
       mapRef.current.remove();
       mapRef.current = null;
@@ -161,9 +163,9 @@ export const ManganeseMapPage: React.FC = () => {
       ? [activeZone.center[1], activeZone.center[0]] // MapLibre uses [lng, lat]
       : [79.7167, 21.5333];
 
-    let targetStyle: string | maplibregl.StyleSpecification = 'https://tiles.openfreemap.org/styles/dark';
-    if (selectedStyleMode === 'liberty') {
-      targetStyle = 'https://tiles.openfreemap.org/styles/liberty';
+    let targetStyle: string | maplibregl.StyleSpecification = 'https://tiles.openfreemap.org/styles/liberty';
+    if (selectedStyleMode === 'dark') {
+      targetStyle = 'https://tiles.openfreemap.org/styles/dark';
     } else if (selectedStyleMode === 'raster') {
       targetStyle = FALLBACK_RASTER_STYLE;
     }
@@ -173,45 +175,48 @@ export const ManganeseMapPage: React.FC = () => {
         container: mapContainerRef.current,
         style: targetStyle,
         center: initialCenter,
-        zoom: 11
+        zoom: 11,
+        attributionControl: { compact: true }
       });
 
       map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
 
-      const markMapReady = () => {
+      // Explicit Step 4 Logging & Lifecycle hooks
+      map.on('load', () => {
+        if (!isMounted) return;
+        console.log('MAPLIBRE: map loaded');
         setIsMapLoaded(true);
         setHasLoadError(false);
         map.resize();
-      };
+      });
 
-      // Check if style is already loaded (solves cached/synchronous race condition)
-      if (map.isStyleLoaded() || map.loaded()) {
-        markMapReady();
-      } else {
-        map.on('load', markMapReady);
-      }
+      map.on('error', (event) => {
+        console.error('MAPLIBRE ERROR:', event);
+      });
 
-      // Handle map style loading errors with automatic fallback to raster tiles
-      map.on('error', (e: maplibregl.ErrorEvent) => {
-        console.warn('MapLibre style warning:', e);
-        if (!map.isStyleLoaded() && selectedStyleMode !== 'raster') {
-          // Switch to fallback raster tiles if vector style fails
-          console.warn('Switching to fallback raster basemap style...');
-          try {
-            map.setStyle(FALLBACK_RASTER_STYLE);
-            markMapReady();
-          } catch (err) {
-            setHasLoadError(true);
-          }
+      map.on('styledata', () => {
+        console.log('MAPLIBRE: style loaded');
+        if (isMounted && map.isStyleLoaded()) {
+          setIsMapLoaded(true);
+          setHasLoadError(false);
         }
       });
 
-      // Fallback safety timer: Guarantee map ready state after 800ms
-      const fallbackTimer = setTimeout(() => {
-        markMapReady();
-      }, 800);
+      map.on('sourcedata', (event) => {
+        if (event?.sourceId) {
+          console.log('MAPLIBRE SOURCE:', event.sourceId);
+        }
+      });
 
-      // Auto-resize MapLibre container whenever element dimensions change
+      // Synchronous check if style loaded immediately
+      if (map.isStyleLoaded() || map.loaded()) {
+        console.log('MAPLIBRE: style loaded synchronously');
+        setIsMapLoaded(true);
+        setHasLoadError(false);
+        map.resize();
+      }
+
+      // Auto-resize MapLibre container whenever element dimensions change (Step 8)
       const resizeObserver = new ResizeObserver(() => {
         if (mapRef.current) {
           mapRef.current.resize();
@@ -224,7 +229,7 @@ export const ManganeseMapPage: React.FC = () => {
       mapRef.current = map;
 
       return () => {
-        clearTimeout(fallbackTimer);
+        isMounted = false;
         resizeObserver.disconnect();
         if (mapRef.current) {
           mapRef.current.remove();
@@ -675,7 +680,7 @@ export const ManganeseMapPage: React.FC = () => {
           </div>
 
           {/* MapLibre Container Viewport */}
-          <div className="w-full h-full rounded-xl overflow-hidden relative">
+          <div className="relative w-full h-[600px] min-h-[600px] rounded-xl overflow-hidden bg-[#0a0e08]">
             {filteredZones.length === 0 ? (
               <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 space-y-3 bg-[#0a0e08]">
                 <ShieldAlert size={36} className="text-amber-400 animate-pulse" />
@@ -691,7 +696,11 @@ export const ManganeseMapPage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div ref={mapContainerRef} className="w-full h-full rounded-xl" style={{ minHeight: '560px' }} />
+              <div
+                ref={mapContainerRef}
+                className="absolute inset-0 w-full h-full rounded-xl"
+                style={{ width: '100%', height: '100%', minHeight: '600px' }}
+              />
             )}
 
             {/* MapLibre Loading Skeleton Overlay */}
