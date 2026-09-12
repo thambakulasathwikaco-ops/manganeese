@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -15,7 +15,7 @@ import { ShortfallPage } from './pages/ShortfallPage';
 import { EquipmentPage } from './pages/EquipmentPage';
 import { WeatherPage } from './pages/WeatherPage';
 import { DataUploadPage } from './pages/DataUploadPage';
-import { ModelsPage } from './pages/ModelsPage';
+import { SiteIntelligencePage } from './pages/SiteIntelligencePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -62,7 +62,9 @@ export const App: React.FC = () => {
             <Route path="/equipment" element={<EquipmentPage />} />
             <Route path="/weather" element={<WeatherPage />} />
             <Route path="/data" element={<DataUploadPage />} />
-            <Route path="/models" element={<ModelsPage />} />
+            <Route path="/analyzed-locations" element={<SiteIntelligencePage />} />
+            <Route path="/site-intelligence" element={<Navigate to="/analyzed-locations" replace />} />
+            <Route path="/models" element={<Navigate to="/analyzed-locations" replace />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -159,3 +159,53 @@ export interface ProspectivityAnalysisResult {
   timestamp: string;
 }
 
+export type LocationAnalysisStatus = 'ACTIVE' | 'OPTIMIZED' | 'UNDER_REVIEW' | 'PROSPECTING' | 'FEASIBILITY';
+
+export interface LocationAnalysisSnapshot {
+  analyzedAt: string;
+  suitabilityScore: number;
+  productionPotential: number;
+  resourcePotential: number;
+  accessibilityScore: number;
+  infrastructureScore: number;
+  transportScore: number;
+  equipmentAvailability: number;
+  weatherRiskScore: number;
+  operationalRisk: number;
+  environmentalScore: number;
+  overallScore: number;
+}
+
+export interface LocationAnalysisRecord {
+  id: string;
+  locationId: string;
+  locationName: string;
+  region: string;
+  latitude: number;
+  longitude: number;
+  analyzedAt: string;
+  lastUpdated: string;
+  suitabilityScore: number;
+  productionPotential: number;
+  resourcePotential: number;
+  accessibilityScore: number;
+  infrastructureScore: number;
+  transportScore: number;
+  equipmentAvailability: number;
+  weatherRiskScore: number;
+  weatherRiskLevel: WeatherRisk;
+  operationalRisk: number;
+  environmentalScore: number;
+  overallScore: number;
+  status: LocationAnalysisStatus;
+  manganeseGradePct: number;
+  estimatedReserveTons: number;
+  geologicalScore: number;
+  boreholeScore: number;
+  satelliteScore: number;
+  terrainScore: number;
+  recommendation: string;
+  history: LocationAnalysisSnapshot[];
+}
+
+

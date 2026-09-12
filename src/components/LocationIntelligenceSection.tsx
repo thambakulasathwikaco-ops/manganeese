@@ -13,11 +13,12 @@ import {
   Compass,
   Cpu
 } from 'lucide-react';
-import type { SelectedLocation, ProspectivityAnalysisResult } from '../types';
+import type { SelectedLocation, ProspectivityAnalysisResult, LocationAnalysisRecord } from '../types';
 import { locationService } from '../services/locationService';
 import { prospectivityService } from '../services/prospectivityService';
 import { LocationMapSelector } from './LocationMapSelector';
 import { ErrorBoundary } from './ErrorBoundary';
+import { useAppStore } from '../store/useAppStore';
 
 const ANALYSIS_STAGES = [
   'DATA',
@@ -34,6 +35,7 @@ const ANALYSIS_STAGES = [
 
 const LocationIntelligenceContent: React.FC = () => {
   const navigate = useNavigate();
+  const { addSiteIntelligenceRecord } = useAppStore();
 
   // Centralized location state
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation>({
@@ -162,6 +164,58 @@ const LocationIntelligenceContent: React.FC = () => {
     const result = prospectivityService.calculateProspectivity(selectedLocation);
     setAnalysisResult(result);
     setAnalysisStatus('completed');
+
+    // Create & register site intelligence record in central memory
+    const locId = `SITE-CUSTOM-${Math.abs(Math.round(selectedLocation.latitude * 1000 + selectedLocation.longitude * 1000))}`;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const newRecord: LocationAnalysisRecord = {
+      id: `site-custom-${Date.now()}`,
+      locationId: locId,
+      locationName: selectedLocation.name || `Location ${selectedLocation.latitude}, ${selectedLocation.longitude}`,
+      region: selectedLocation.name.includes('Maharashtra') ? 'Nagpur District' : 'Custom Prospect',
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude,
+      analyzedAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      suitabilityScore: result.prospectivityScore,
+      productionPotential: Math.min(96, Math.max(20, Math.round(result.prospectivityScore * 0.98))),
+      resourcePotential: Math.min(98, Math.max(25, Math.round(result.geologicalScore * 0.95))),
+      accessibilityScore: Math.min(94, Math.max(30, Math.round(result.terrainScore * 0.9 + 10))),
+      infrastructureScore: Math.min(92, Math.max(35, Math.round(result.satelliteScore * 0.9))),
+      transportScore: Math.min(90, Math.max(40, Math.round(result.terrainScore * 0.85 + 10))),
+      equipmentAvailability: 80,
+      weatherRiskScore: 28,
+      weatherRiskLevel: 'LOW',
+      operationalRisk: Math.max(10, 100 - result.confidence),
+      environmentalScore: Math.min(95, Math.max(50, Math.round(result.satelliteScore * 0.9 + 5))),
+      overallScore: result.prospectivityScore,
+      status: result.prospectivityScore >= 75 ? 'OPTIMIZED' : result.prospectivityScore >= 50 ? 'ACTIVE' : 'PROSPECTING',
+      manganeseGradePct: Number((30 + result.prospectivityScore * 0.18).toFixed(1)),
+      estimatedReserveTons: Math.round(result.prospectivityScore * 15000),
+      geologicalScore: result.geologicalScore,
+      boreholeScore: result.boreholeScore,
+      satelliteScore: result.satelliteScore,
+      terrainScore: result.terrainScore,
+      recommendation: result.aiExplanation,
+      history: [
+        {
+          analyzedAt: todayStr,
+          suitabilityScore: result.prospectivityScore,
+          productionPotential: Math.round(result.prospectivityScore * 0.98),
+          resourcePotential: Math.round(result.geologicalScore * 0.95),
+          accessibilityScore: Math.round(result.terrainScore * 0.9 + 10),
+          infrastructureScore: Math.round(result.satelliteScore * 0.9),
+          transportScore: Math.round(result.terrainScore * 0.85 + 10),
+          equipmentAvailability: 80,
+          weatherRiskScore: 28,
+          operationalRisk: Math.max(10, 100 - result.confidence),
+          environmentalScore: Math.round(result.satelliteScore * 0.9 + 5),
+          overallScore: result.prospectivityScore
+        }
+      ]
+    };
+
+    addSiteIntelligenceRecord(newRecord);
   };
 
   // Score counter animation

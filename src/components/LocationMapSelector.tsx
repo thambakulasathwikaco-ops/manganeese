@@ -31,6 +31,7 @@ const MapRecenter: React.FC<{ center: [number, number] }> = ({ center }) => {
   const map = useMap();
   useEffect(() => {
     map.flyTo(center, 12, { duration: 1.0 });
+    map.invalidateSize();
   }, [center, map]);
   return null;
 };

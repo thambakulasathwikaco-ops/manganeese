@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   AppSettings,
   EquipmentItem,
+  LocationAnalysisRecord,
   NotificationItem,
   ProductionFactors,
   Recommendation,
@@ -11,7 +12,7 @@ import type {
   WeatherRisk,
   Zone
 } from '../types';
-import { INITIAL_EQUIPMENT, INITIAL_PRODUCTION_FACTORS, INITIAL_WEATHER, INITIAL_ZONES } from '../data/initialData';
+import { INITIAL_EQUIPMENT, INITIAL_PRODUCTION_FACTORS, INITIAL_SITE_INTELLIGENCE_RECORDS, INITIAL_WEATHER, INITIAL_ZONES } from '../data/initialData';
 import { recommendationService } from '../services/recommendationService';
 
 export interface AppState {
@@ -22,6 +23,7 @@ export interface AppState {
   recommendations: Recommendation[];
   notifications: NotificationItem[];
   uploadedDatasets: UploadedDataset[];
+  siteIntelligenceRecords: LocationAnalysisRecord[];
   settings: AppSettings;
   aiAnalysisStatus: 'idle' | 'running' | 'completed';
   aiAnalysisStage: string;
@@ -43,6 +45,9 @@ export interface AppState {
   uploadDataset: (dataset: UploadedDataset) => void;
   processUploadedDataset: (fileId: string) => void;
   runFullAiAnalysis: () => Promise<void>;
+  addSiteIntelligenceRecord: (record: LocationAnalysisRecord) => void;
+  updateSiteIntelligenceRecord: (id: string, record: Partial<LocationAnalysisRecord>) => void;
+  deleteSiteIntelligenceRecord: (id: string) => void;
   updateSettings: (settings: Partial<AppSettings>) => void;
   setActiveTimeframe: (timeframe: '7D' | '30D' | '90D' | '6M') => void;
   setSearchQuery: (query: string) => void;
@@ -89,6 +94,7 @@ export const useAppStore = create<AppState>()(
       recommendations: recommendationService.generateRecommendations(INITIAL_PRODUCTION_FACTORS),
       notifications: DEFAULT_NOTIFICATIONS,
       uploadedDatasets: [],
+      siteIntelligenceRecords: INITIAL_SITE_INTELLIGENCE_RECORDS,
       settings: DEFAULT_SETTINGS,
       aiAnalysisStatus: 'idle',
       aiAnalysisStage: '',
@@ -325,6 +331,61 @@ export const useAppStore = create<AppState>()(
         }, 1200);
       },
 
+      addSiteIntelligenceRecord: (record) => {
+        set((state) => {
+          // Check if record for location already exists, if so update/prepend snapshot
+          const existingIndex = state.siteIntelligenceRecords.findIndex(
+            (r) => r.locationId === record.locationId || (r.latitude === record.latitude && r.longitude === record.longitude)
+          );
+          let updatedList: LocationAnalysisRecord[];
+          if (existingIndex >= 0) {
+            const existing = state.siteIntelligenceRecords[existingIndex];
+            const mergedRecord: LocationAnalysisRecord = {
+              ...record,
+              id: existing.id,
+              history: [
+                ...existing.history,
+                {
+                  analyzedAt: record.analyzedAt.split('T')[0],
+                  suitabilityScore: record.suitabilityScore,
+                  productionPotential: record.productionPotential,
+                  resourcePotential: record.resourcePotential,
+                  accessibilityScore: record.accessibilityScore,
+                  infrastructureScore: record.infrastructureScore,
+                  transportScore: record.transportScore,
+                  equipmentAvailability: record.equipmentAvailability,
+                  weatherRiskScore: record.weatherRiskScore,
+                  operationalRisk: record.operationalRisk,
+                  environmentalScore: record.environmentalScore,
+                  overallScore: record.overallScore
+                }
+              ]
+            };
+            updatedList = [
+              mergedRecord,
+              ...state.siteIntelligenceRecords.filter((_, idx) => idx !== existingIndex)
+            ];
+          } else {
+            updatedList = [record, ...state.siteIntelligenceRecords];
+          }
+          return { siteIntelligenceRecords: updatedList };
+        });
+      },
+
+      updateSiteIntelligenceRecord: (id, partialRecord) => {
+        set((state) => ({
+          siteIntelligenceRecords: state.siteIntelligenceRecords.map((r) =>
+            r.id === id ? { ...r, ...partialRecord, lastUpdated: new Date().toISOString() } : r
+          )
+        }));
+      },
+
+      deleteSiteIntelligenceRecord: (id) => {
+        set((state) => ({
+          siteIntelligenceRecords: state.siteIntelligenceRecords.filter((r) => r.id !== id)
+        }));
+      },
+
       updateSettings: (newSettings) => {
         set((state) => ({
           settings: { ...state.settings, ...newSettings }
@@ -343,6 +404,7 @@ export const useAppStore = create<AppState>()(
           weather: INITIAL_WEATHER,
           recommendations: recommendationService.generateRecommendations(INITIAL_PRODUCTION_FACTORS),
           uploadedDatasets: [],
+          siteIntelligenceRecords: INITIAL_SITE_INTELLIGENCE_RECORDS,
           notifications: DEFAULT_NOTIFICATIONS,
           settings: DEFAULT_SETTINGS,
           lastAnalysisTimestamp: new Date().toISOString()

@@ -9,7 +9,7 @@ import {
   Truck,
   CloudRain,
   Database,
-  Cpu,
+  BrainCircuit,
   Sliders
 } from 'lucide-react';
 
@@ -44,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     {
       title: 'AI',
       items: [
-        { label: 'AI Architecture', path: '/models', icon: Cpu },
+        { label: 'Analyzed Locations', path: '/analyzed-locations', icon: BrainCircuit },
       ]
     },
     {
