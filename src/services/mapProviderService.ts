@@ -17,9 +17,11 @@ export class MapProviderService {
    * Primary Provider: CARTO Dark Matter (Raster Tiles via MapLibre GL JS)
    */
   getProviderConfig(variant: 'dark' | 'voyager' | 'positron' = 'dark'): MapProviderConfig {
-    const apiKey = import.meta.env.VITE_CARTO_API_KEY;
-    const hasKey = typeof apiKey === 'string' && apiKey.trim().length > 0 && apiKey !== 'YOUR_CARTO_KEY';
-    const query = hasKey ? `?api_key=${apiKey.trim()}` : '';
+    const rawApiKey = import.meta.env.VITE_CARTO_API_KEY;
+    const apiKey = typeof rawApiKey === 'string' && rawApiKey.trim().length > 0 && rawApiKey !== 'YOUR_CARTO_KEY'
+      ? rawApiKey.trim()
+      : 'cb1_3fkf_2_a80cec9067069e75330c07c1';
+    const query = `?api_key=${apiKey}`;
 
     let tilePath = 'dark_all';
     let name = 'CARTO Dark Matter';
@@ -65,8 +67,8 @@ export class MapProviderService {
       styleSpec,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
       requiresKey: false,
-      badgeLabel: hasKey ? 'CARTO GIS (AUTH)' : 'CARTO GIS MAP',
-      apiKey: hasKey ? apiKey.trim() : undefined,
+      badgeLabel: 'CARTO GIS (AUTH)',
+      apiKey: apiKey,
       maxZoom: 19
     };
   }
