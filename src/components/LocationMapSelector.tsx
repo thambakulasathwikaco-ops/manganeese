@@ -68,7 +68,14 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
         style: mapConfig.styleSpec,
         center: [longitude, latitude], // MapLibre expects [lng, lat]
         zoom: 11,
-        attributionControl: { compact: true }
+        attributionControl: { compact: true },
+        transformRequest: (url: string) => {
+          if (mapConfig.apiKey && url.includes('basemaps.cartocdn.com') && !url.includes('api_key=')) {
+            const separator = url.includes('?') ? '&' : '?';
+            return { url: `${url}${separator}api_key=${mapConfig.apiKey}` };
+          }
+          return { url };
+        }
       });
 
       mapRef.current = map;

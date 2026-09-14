@@ -150,12 +150,20 @@ export const ManganeseMapPage: React.FC = () => {
     }
 
     try {
+      const activeProvider = mapProviderService.getProviderConfig(selectedStyleMode === 'liberty' ? 'voyager' : selectedStyleMode === 'raster' ? 'positron' : 'dark');
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
         style: targetStyle,
         center: initialCenter,
         zoom: 11,
-        attributionControl: { compact: true }
+        attributionControl: { compact: true },
+        transformRequest: (url: string) => {
+          if (activeProvider.apiKey && url.includes('basemaps.cartocdn.com') && !url.includes('api_key=')) {
+            const separator = url.includes('?') ? '&' : '?';
+            return { url: `${url}${separator}api_key=${activeProvider.apiKey}` };
+          }
+          return { url };
+        }
       });
 
       map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
