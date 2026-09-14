@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import { forecastService } from '../services/forecastService';
 import { riskService } from '../services/riskService';
 import { LocationIntelligenceSection } from '../components/LocationIntelligenceSection';
+import { ManganeseOreCanvas } from '../components/ManganeseOreCanvas';
 import { MapPin, TrendingUp, ShieldAlert, Cpu, ArrowRight } from 'lucide-react';
 import { CardGrid, StatCard, FeatureCard } from '../components/ui/Card';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [isCtaHovered, setIsCtaHovered] = useState<boolean>(false);
   const { productionFactors, zones, recommendations } = useAppStore();
 
   const { predictedProduction } = forecastService.calculateForecast(productionFactors);
@@ -23,7 +25,7 @@ export const LandingPage: React.FC = () => {
       id: 'prospectivity',
       icon: MapPin,
       title: 'Manganese Prospectivity AI',
-      desc: 'Ensemble multi-spectral & borehole core sample analytics predicting deposit high-potential zones.',
+      desc: 'Ensemble multi-spectral & borehole core sample analytics predicting deposit high-potential orebody zones.',
       route: '/manganese-map',
       badge: `${highPotentialZonesCount} High Potential Zones`
     },
@@ -54,115 +56,123 @@ export const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#10140D] text-[#F1F2E9] flex flex-col justify-between selection:bg-[#71825B]/30 selection:text-[#F1F2E9] relative overflow-hidden">
+    <div className="min-h-screen bg-[#0B100B] text-[#F1F1E9] flex flex-col justify-between selection:bg-[#A9B58D]/30 selection:text-[#F1F1E9] relative overflow-hidden font-sans">
       
-      {/* Quiet Atmospheric Ambient Topographic Depth */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-[#303A25]/20 via-transparent to-transparent blur-3xl pointer-events-none" />
+      {/* Deep Atmospheric Subsurface Depth Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-gradient-to-b from-[#182016]/40 via-[#111811]/20 to-transparent blur-3xl pointer-events-none" />
 
-      {/* Landing Header */}
-      <header className="px-6 py-6 max-w-7xl mx-auto w-full flex items-center justify-between z-10">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <div className="w-9 h-9 rounded-xl bg-[#1D2517] border border-[#252E1D] flex items-center justify-center text-[#A4B18A] font-black text-lg shadow-inner">
+      {/* Top Navigation Bar */}
+      <header className="px-6 sm:px-10 py-6 max-w-7xl mx-auto w-full flex items-center justify-between z-30">
+        
+        {/* Brand Identity: Manganese Mining + Compact M Icon */}
+        <div
+          className="flex items-center gap-3 cursor-pointer group"
+          onClick={() => navigate('/')}
+        >
+          <div className="w-9 h-9 rounded-lg bg-[#182016] border border-[#A9B58D]/30 flex items-center justify-center text-[#F1F1E9] font-black text-sm shadow-inner group-hover:border-[#A9B58D]/60 transition duration-200">
             M
           </div>
-          <div>
+          <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-[#F1F2E9] tracking-tight text-base">MOIL SMARTMINE</span>
-              <span className="text-[10px] font-mono font-bold bg-[#0B0E09] text-[#A4B18A] px-2 py-0.5 rounded-md border border-[#252E1D] shadow-inner">AI</span>
+              <span className="font-extrabold text-[#F1F1E9] tracking-tight text-sm uppercase">
+                MANGANESE MINING
+              </span>
+              <span className="text-[9px] font-mono font-bold bg-[#111811] text-[#A9B58D] px-2 py-0.5 rounded border border-[#A9B58D]/25 uppercase tracking-wider">
+                INTELLIGENCE
+              </span>
             </div>
-            <p className="text-[9px] font-mono text-[#71825B] tracking-widest uppercase">PREDICT. PLAN. PRODUCE.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Minimal Navigation Links */}
+        <nav className="hidden md:flex items-center gap-8 text-xs font-mono font-bold tracking-widest text-[#9EA493]">
           <button
             onClick={() => navigate('/manganese-map')}
-            className="hidden sm:flex px-4 py-2 rounded-xl text-xs font-semibold text-[#C0C6B2] hover:text-[#F1F2E9] hover:bg-[#171D12] transition cursor-pointer"
+            className="hover:text-[#F1F1E9] transition duration-200 cursor-pointer uppercase"
           >
-            GIS Map
+            GIS MAP
           </button>
           <button
-            onClick={() => navigate('/dashboard')}
-            className="px-5 py-2.5 btn-clay-primary text-xs transition flex items-center gap-2 cursor-pointer uppercase tracking-wider font-extrabold"
+            onClick={() => navigate('/data')}
+            className="hover:text-[#F1F1E9] transition duration-200 cursor-pointer uppercase"
           >
-            <span>ENTER SMARTMINE</span>
+            MINING DATA
+          </button>
+          <button
+            onClick={() => navigate('/analyzed-locations')}
+            className="hover:text-[#F1F1E9] transition duration-200 cursor-pointer uppercase"
+          >
+            INTELLIGENCE
+          </button>
+        </nav>
+
+        {/* Header Right CTA */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="px-5 py-2.5 bg-[#F1F1E9] text-[#0B100B] hover:bg-[#FFFFFF] font-extrabold text-xs rounded-xl shadow-md transition duration-200 flex items-center gap-2 cursor-pointer uppercase tracking-wider hover:-translate-y-0.5 active:translate-y-0"
+          >
+            <span>ENTER PLATFORM</span>
             <ArrowRight size={14} />
           </button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-6 py-12 sm:py-20 text-center z-10 flex-1 flex flex-col justify-center items-center">
+      {/* Visual-First Main Hero Section */}
+      <main className="max-w-6xl mx-auto px-4 pt-4 sm:pt-8 pb-12 text-center z-10 flex-1 flex flex-col justify-center items-center relative">
         
-        {/* Eyebrow */}
+        {/* Dominant Minimal Typography */}
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+          className="text-6xl sm:text-8xl md:text-9xl font-black tracking-tight leading-none uppercase text-[#F1F1E9] select-none z-10 opacity-90 tracking-tighter"
+        >
+          MANGANESE
+        </motion.h1>
+
+        {/* Central 3D Manganese Ore Animation (55–70% Visual Focus) */}
+        <div className="w-full max-w-4xl h-[400px] sm:h-[500px] -mt-8 sm:-mt-16 -mb-6 sm:-mb-10 relative z-20 flex items-center justify-center">
+          <ManganeseOreCanvas isCtaHovered={isCtaHovered} />
+        </div>
+
+        {/* Primary & Secondary Action CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.05 }}
-          className="text-xs sm:text-sm font-mono font-bold tracking-[0.25em] uppercase text-[#A4B18A] mb-4 sm:mb-6"
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="flex flex-col sm:flex-row items-center gap-4 mb-14 z-30 w-full sm:w-auto px-4"
         >
-          MOIL SMARTMINE AI
-        </motion.div>
-
-        {/* Main Hero Headline */}
-        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[0.95] max-w-5xl text-center mb-6 sm:mb-8">
-          <motion.span
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
-            className="block text-[#F1F2E9] uppercase tracking-[0.01em]"
-          >
-            MANGANESE
-          </motion.span>
-          <motion.span
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-            className="block text-[#A4B18A] uppercase tracking-[0.01em]"
-          >
-            INTELLIGENCE, REIMAGINED.
-          </motion.span>
-        </h1>
-
-        {/* Tagline */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.35 }}
-          className="text-xs sm:text-sm md:text-base font-mono font-bold tracking-[0.3em] uppercase text-[#C0C6B2] mb-10 sm:mb-14"
-        >
-          PREDICT. PLAN. PRODUCE.
-        </motion.div>
-
-        {/* Hero Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.45 }}
-          className="flex flex-col sm:flex-row items-center gap-4 mb-12 sm:mb-16"
-        >
+          {/* Primary CTA Button */}
           <button
             onClick={() => navigate('/dashboard')}
-            className="w-full sm:w-auto px-8 py-3.5 btn-clay-primary text-sm transition flex items-center justify-center gap-3 group cursor-pointer uppercase tracking-wider font-extrabold"
+            onMouseEnter={() => setIsCtaHovered(true)}
+            onMouseLeave={() => setIsCtaHovered(false)}
+            className="w-full sm:w-auto px-9 py-4 bg-[#F1F1E9] hover:bg-[#FFFFFF] text-[#0B100B] font-extrabold text-xs sm:text-sm rounded-xl shadow-xl transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer uppercase tracking-wider hover:-translate-y-0.5 active:translate-y-0"
           >
-            <span>ENTER SMARTMINE DASHBOARD</span>
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition" />
+            <span>ENTER MINING INTELLIGENCE</span>
+            <ArrowRight size={16} />
           </button>
           
+          {/* Secondary CTA Button */}
           <button
             onClick={() => navigate('/manganese-map')}
-            className="w-full sm:w-auto px-8 py-3.5 btn-clay-secondary text-sm transition flex items-center justify-center gap-2 cursor-pointer font-bold uppercase tracking-wider"
+            onMouseEnter={() => setIsCtaHovered(true)}
+            onMouseLeave={() => setIsCtaHovered(false)}
+            className="w-full sm:w-auto px-8 py-4 bg-[#182016] hover:bg-[#212C1E] text-[#F1F1E9] border border-[#A9B58D]/30 hover:border-[#A9B58D]/60 font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer uppercase tracking-wider hover:-translate-y-0.5 active:translate-y-0"
           >
-            <MapPin size={16} className="text-[#A4B18A]" />
+            <MapPin size={16} className="text-[#A9B58D]" />
             <span>VIEW MANGANESE MAP</span>
           </button>
         </motion.div>
 
-        {/* Location Intelligence Console */}
-        <LocationIntelligenceSection />
+        {/* Location & Geological Site Intelligence Section */}
+        <div className="w-full max-w-5xl mb-12 relative z-10">
+          <LocationIntelligenceSection />
+        </div>
 
-        {/* Metrics Ticker Row using StatCard inside CardGrid */}
-        <div className="mt-10 w-full max-w-4xl text-left">
+        {/* Metrics Ticker Row */}
+        <div className="mt-4 w-full max-w-5xl text-left relative z-10">
           <CardGrid columns={4}>
             <StatCard
               title="Prospectivity Model"
@@ -172,7 +182,7 @@ export const LandingPage: React.FC = () => {
             <StatCard
               title="Production Forecast"
               value={`${predictedProduction.toLocaleString()} MT`}
-              subtext="30-Day Multi-Factor"
+              subtext="30-Day Multi-Factor Yield"
             />
             <StatCard
               title="Shortfall Risk"
@@ -187,8 +197,8 @@ export const LandingPage: React.FC = () => {
           </CardGrid>
         </div>
 
-        {/* 4 Core Intelligence Feature Cards Grid */}
-        <div className="mt-10 w-full max-w-5xl text-left">
+        {/* 4 Core Mining Intelligence Feature Cards Grid */}
+        <div className="mt-8 w-full max-w-5xl text-left relative z-10">
           <CardGrid columns={2}>
             {features.map((feat) => (
               <FeatureCard
@@ -197,7 +207,7 @@ export const LandingPage: React.FC = () => {
                 description={feat.desc}
                 icon={feat.icon}
                 badge={feat.badge}
-                actionText="LAUNCH MODULE"
+                actionText="ENTER MODULE"
                 onClick={() => navigate(feat.route)}
               />
             ))}
@@ -205,11 +215,19 @@ export const LandingPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Landing Footer */}
-      <footer className="px-6 py-6 border-t border-[#252E1D] max-w-7xl mx-auto w-full text-center sm:flex items-center justify-between text-xs text-[#71825B] font-mono z-10">
-        <div>MOIL SMARTMINE AI — Operational Intelligence Platform</div>
-        <div className="mt-2 sm:mt-0">Built with React, TypeScript, Leaflet & Recharts</div>
+      {/* Industrial Landing Footer */}
+      <footer className="px-6 sm:px-10 py-6 border-t border-[#182016] max-w-7xl mx-auto w-full text-center sm:flex items-center justify-between text-xs text-[#9EA493] font-mono z-10">
+        <div className="flex items-center gap-2 justify-center sm:justify-start">
+          <span className="w-2 h-2 rounded-full bg-[#A9B58D] animate-pulse" />
+          <span className="font-bold text-[#F1F1E9]">MANGANESE MINING INTELLIGENCE PLATFORM</span>
+          <span>— DONGRI-MANSAR BELT</span>
+        </div>
+        <div className="mt-2 sm:mt-0 text-[11px] text-[#9EA493]/70">
+          Geological GIS • Orebody Analytics • 30-Day Production Engine
+        </div>
       </footer>
     </div>
   );
 };
+
+

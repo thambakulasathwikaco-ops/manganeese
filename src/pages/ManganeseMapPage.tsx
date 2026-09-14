@@ -58,26 +58,27 @@ const PROSPECTIVITY_COLORS = {
   }
 };
 
-// Fallback high-performance MapLibre Raster Style (Guarantees basemap renders even if vector PBF/glyphs fail)
+// Fallback high-performance MapLibre CARTO Raster Style
 const FALLBACK_RASTER_STYLE: maplibregl.StyleSpecification = {
   version: 8,
   sources: {
-    'open-basemap': {
+    'carto-basemap': {
       type: 'raster',
       tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        'https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
       ],
       tileSize: 256,
-      attribution: '&copy; <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
     }
   },
   layers: [
     {
-      id: 'open-basemap-layer',
+      id: 'carto-basemap-layer',
       type: 'raster',
-      source: 'open-basemap',
+      source: 'carto-basemap',
       minzoom: 0,
       maxzoom: 19
     }
@@ -163,9 +164,11 @@ export const ManganeseMapPage: React.FC = () => {
       ? [activeZone.center[1], activeZone.center[0]] // MapLibre uses [lng, lat]
       : [79.7167, 21.5333];
 
-    let targetStyle: string | maplibregl.StyleSpecification = 'https://tiles.openfreemap.org/styles/liberty';
+    let targetStyle: string | maplibregl.StyleSpecification = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
     if (selectedStyleMode === 'dark') {
-      targetStyle = 'https://tiles.openfreemap.org/styles/dark';
+      targetStyle = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+    } else if (selectedStyleMode === 'liberty') {
+      targetStyle = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
     } else if (selectedStyleMode === 'raster') {
       targetStyle = FALLBACK_RASTER_STYLE;
     }
@@ -282,7 +285,7 @@ export const ManganeseMapPage: React.FC = () => {
       };
     });
 
-    const geojsonData: GeoJSON.FeatureCollection = {
+    const geojsonData: any = {
       type: 'FeatureCollection',
       features: geojsonFeatures
     };

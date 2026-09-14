@@ -65,19 +65,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         
         {/* Brand Header in Sidebar */}
         <div
-          onClick={() => navigate('/dashboard')}
-          className="px-3 pt-1 pb-3 cursor-pointer group border-b border-clay-border"
+          onClick={() => navigate('/')}
+          className="px-3 pt-1 pb-3 cursor-pointer group border-b border-[#182016]"
         >
-          <div className="flex items-center gap-2">
-            <span className="font-black text-chrome-plat tracking-tight text-sm group-hover:text-ivory-warm transition">
-              MOIL
-            </span>
-            <span className="font-black text-ivory-cta tracking-tight text-sm">
-              SMARTMINE AI
-            </span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded bg-[#182016] border border-[#A9B58D]/30 flex items-center justify-center text-[#F1F1E9] font-black text-xs">
+              M
+            </div>
+            <div>
+              <span className="font-extrabold text-[#F1F1E9] tracking-tight text-xs uppercase block">
+                MANGANESE MINING
+              </span>
+              <span className="font-mono text-[9px] text-[#A9B58D] font-bold uppercase tracking-wider block">
+                INTELLIGENCE
+              </span>
+            </div>
           </div>
-          <p className="text-[9px] font-mono text-clay-muted tracking-widest mt-0.5 uppercase">
-            PREDICT. PLAN. PRODUCE.
+          <p className="text-[9px] font-mono text-[#9EA493] tracking-widest mt-1.5 uppercase">
+            EXPLORE. ANALYZE. PLAN. PRODUCE.
           </p>
         </div>
 

@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
       case '/settings':
         return { title: 'System Settings', sub: 'Operational thresholds & user preferences' };
       default:
-        return { title: 'MOIL SMARTMINE AI', sub: 'Predict. Plan. Produce.' };
+        return { title: 'MANGANESE MINING INTELLIGENCE', sub: 'Explore. Analyze. Plan. Produce.' };
     }
   };
 
@@ -47,13 +47,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-16 bg-[#0B0E09]/95 backdrop-blur-xl border-b border-clay-border px-4 lg:px-6 flex items-center justify-between">
+      <header className="sticky top-0 z-30 h-16 bg-[#0B100B]/95 backdrop-blur-xl border-b border-[#182016] px-4 lg:px-6 flex items-center justify-between">
         
         {/* Left: Mobile Menu Toggle & Page Context */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-xl text-[#C0C6B2] hover:text-[#F1F2E9] hover:bg-[#171D12] transition cursor-pointer"
+            className="lg:hidden p-2 rounded-xl text-[#9EA493] hover:text-[#F1F1E9] hover:bg-[#182016] transition cursor-pointer"
           >
             <Menu size={18} />
           </button>
@@ -63,13 +63,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               onClick={() => navigate('/dashboard')}
               className="lg:hidden flex items-center gap-2 cursor-pointer"
             >
-              <span className="font-black text-[#F1F2E9] tracking-tight text-sm">MOIL</span>
-              <span className="font-black text-[#D9DDCB] tracking-tight text-sm">SMARTMINE</span>
+              <div className="w-6 h-6 rounded bg-[#182016] border border-[#A9B58D]/30 flex items-center justify-center text-[#F1F1E9] font-black text-xs">M</div>
+              <span className="font-extrabold text-[#F1F1E9] tracking-tight text-xs uppercase">MANGANESE MINING</span>
             </div>
 
             <div className="hidden lg:block">
-              <h1 className="text-sm font-extrabold text-chrome-plat tracking-tight">{meta.title}</h1>
-              <p className="text-[10px] font-mono text-clay-muted">{meta.sub}</p>
+              <h1 className="text-sm font-extrabold text-[#F1F1E9] tracking-tight">{meta.title}</h1>
+              <p className="text-[10px] font-mono text-[#9EA493]">{meta.sub}</p>
             </div>
           </div>
         </div>

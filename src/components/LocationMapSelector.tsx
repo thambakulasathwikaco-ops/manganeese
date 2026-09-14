@@ -1,24 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React, { useEffect, useRef, useState } from 'react';
+import * as maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { mapProviderService } from '../services/mapProviderService';
-
-// Tactile warm ivory & soft olive SVG marker icon with clay depth
-const createCustomMarkerIcon = () => {
-  return L.divIcon({
-    className: 'custom-leaflet-marker',
-    html: `
-      <div style="position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
-        <div style="position: absolute; width: 30px; height: 30px; background: rgba(164, 177, 138, 0.35); border-radius: 50%; animation: pulse 2.5s infinite;"></div>
-        <div style="width: 14px; height: 14px; background: #F1F2E9; border: 2.5px solid #10140D; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.8), 0 0 12px rgba(164, 177, 138, 0.6);"></div>
-      </div>
-    `,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17]
-  });
-};
-
+import { AlertCircle } from 'lucide-react';
 
 interface LocationMapSelectorProps {
   latitude: number;
@@ -26,24 +10,26 @@ interface LocationMapSelectorProps {
   onSelectCoordinates: (lat: number, lon: number) => void;
 }
 
-// Sub-component to re-center map when coordinates change externally
-const MapRecenter: React.FC<{ center: [number, number] }> = ({ center }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.flyTo(center, 12, { duration: 1.0 });
-    map.invalidateSize();
-  }, [center, map]);
-  return null;
-};
-
-// Sub-component to capture map click events
-const MapEventsHandler: React.FC<{ onSelect: (lat: number, lon: number) => void }> = ({ onSelect }) => {
-  useMapEvents({
-    click: (e) => {
-      onSelect(Number(e.latlng.lat.toFixed(4)), Number(e.latlng.lng.toFixed(4)));
-    }
-  });
-  return null;
+// GeoJSON Circle Generator for Target Mining Radius Overlay
+const createGeoJsonCircle = (center: [number, number], radiusKm: number, points = 64) => {
+  const coords: [number, number][] = [];
+  for (let i = 0; i < points; i++) {
+    const angle = (i / points) * (2 * Math.PI);
+    const dx = radiusKm * Math.cos(angle);
+    const dy = radiusKm * Math.sin(angle);
+    const deltaLat = dy / 110.574;
+    const deltaLng = dx / (111.32 * Math.cos((center[1] * Math.PI) / 180));
+    coords.push([center[0] + deltaLng, center[1] + deltaLat]);
+  }
+  coords.push(coords[0]);
+  return {
+    type: 'Feature' as const,
+    geometry: {
+      type: 'Polygon' as const,
+      coordinates: [coords]
+    },
+    properties: {}
+  };
 };
 
 export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
@@ -51,58 +37,205 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
   longitude,
   onSelectCoordinates
 }) => {
-  const markerIcon = useMemo(() => createCustomMarkerIcon(), []);
-  const center: [number, number] = [latitude, longitude];
-  const mapConfig = useMemo(() => mapProviderService.getProviderConfig(), []);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const onSelectCoordinatesRef = useRef(onSelectCoordinates);
 
-  const eventHandlers = useMemo(
-    () => ({
-      dragend(e: L.DragEndEvent) {
-        const marker = e.target;
-        if (marker) {
-          const latLng = marker.getLatLng();
-          onSelectCoordinates(Number(latLng.lat.toFixed(4)), Number(latLng.lng.toFixed(4)));
+  const [hasMapError, setHasMapError] = useState<boolean>(false);
+  const mapConfig = mapProviderService.getProviderConfig();
+
+  // Keep latest callback ref to avoid re-binding handlers
+  useEffect(() => {
+    onSelectCoordinatesRef.current = onSelectCoordinates;
+  }, [onSelectCoordinates]);
+
+  // 1. Initialize MapLibre GL JS Instance with CARTO Dark Matter GL Style
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    // Destroy existing instance if any
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
+
+    setHasMapError(false);
+
+    try {
+      const map = new maplibregl.Map({
+        container: mapContainerRef.current,
+        style: mapConfig.styleUrl, // 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+        center: [longitude, latitude], // MapLibre expects [lng, lat]
+        zoom: 11,
+        attributionControl: { compact: true }
+      });
+
+      mapRef.current = map;
+
+      // Add navigation controls (+ / - zoom & compass)
+      map.addControl(
+        new maplibregl.NavigationControl({ showCompass: true }),
+        'bottom-right'
+      );
+
+      // Custom Manganese Mining Marker DOM element
+      const el = document.createElement('div');
+      el.className = 'custom-manganese-marker';
+      el.style.cssText = 'position: relative; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center;';
+      el.innerHTML = `
+        <div style="position: absolute; width: 32px; height: 32px; background: rgba(169, 181, 141, 0.35); border-radius: 50%; animation: pulse 2.5s infinite;"></div>
+        <div style="width: 14px; height: 14px; background: #F1F1E9; border: 2.5px solid #182016; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.8), 0 0 12px rgba(169, 181, 141, 0.6);"></div>
+      `;
+
+      // Create & Add Draggable Marker
+      const marker = new maplibregl.Marker({ element: el, draggable: true })
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+
+      markerRef.current = marker;
+
+      // Handle Marker Drag Event
+      marker.on('dragend', () => {
+        const lngLat = marker.getLngLat();
+        const lat = Number(lngLat.lat.toFixed(4));
+        const lon = Number(lngLat.lng.toFixed(4));
+
+        if (map.getSource('selected-target-radius')) {
+          (map.getSource('selected-target-radius') as maplibregl.GeoJSONSource).setData(
+            createGeoJsonCircle([lon, lat], 2.5) as any
+          );
         }
+
+        onSelectCoordinatesRef.current(lat, lon);
+      });
+
+      // Handle Map Click Event
+      map.on('click', (e: maplibregl.MapMouseEvent) => {
+        const lat = Number(e.lngLat.lat.toFixed(4));
+        const lon = Number(e.lngLat.lng.toFixed(4));
+        marker.setLngLat([lon, lat]);
+
+        if (map.getSource('selected-target-radius')) {
+          (map.getSource('selected-target-radius') as maplibregl.GeoJSONSource).setData(
+            createGeoJsonCircle([lon, lat], 2.5) as any
+          );
+        }
+
+        onSelectCoordinatesRef.current(lat, lon);
+      });
+
+      // Add Mining Target Exploration Radius Layer on Map Load
+      map.on('load', () => {
+        map.resize();
+
+        if (!map.getSource('selected-target-radius')) {
+          map.addSource('selected-target-radius', {
+            type: 'geojson',
+            data: createGeoJsonCircle([longitude, latitude], 2.5) as any
+          });
+
+          map.addLayer({
+            id: 'selected-target-radius-fill',
+            type: 'fill',
+            source: 'selected-target-radius',
+            paint: {
+              'fill-color': '#A9B58D',
+              'fill-opacity': 0.12
+            }
+          });
+
+          map.addLayer({
+            id: 'selected-target-radius-stroke',
+            type: 'line',
+            source: 'selected-target-radius',
+            paint: {
+              'line-color': '#A9B58D',
+              'line-width': 1.5,
+              'line-dasharray': [3, 3]
+            }
+          });
+        }
+      });
+
+      map.on('error', (e: any) => {
+        console.warn('CARTO MapLibre error:', e);
+        if (e.error?.message?.includes('style') || e.error?.message?.includes('fetch')) {
+          setHasMapError(true);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to initialize CARTO MapLibre GL map:', err);
+      setHasMapError(true);
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
       }
-    }),
-    [onSelectCoordinates]
-  );
+    };
+  }, []); // Run once on mount
+
+  // 2. Synchronize Map Center, Marker, and Exploration Overlay on Coordinate Changes
+  useEffect(() => {
+    if (!mapRef.current || !markerRef.current) return;
+
+    const currentLngLat = markerRef.current.getLngLat();
+    const isDifferent =
+      Math.abs(currentLngLat.lat - latitude) > 0.0001 ||
+      Math.abs(currentLngLat.lng - longitude) > 0.0001;
+
+    if (isDifferent) {
+      markerRef.current.setLngLat([longitude, latitude]);
+
+      if (mapRef.current.getSource('selected-target-radius')) {
+        (mapRef.current.getSource('selected-target-radius') as maplibregl.GeoJSONSource).setData(
+          createGeoJsonCircle([longitude, latitude], 2.5) as any
+        );
+      }
+
+      mapRef.current.flyTo({
+        center: [longitude, latitude],
+        zoom: 12,
+        duration: 1000
+      });
+      setTimeout(() => mapRef.current?.resize(), 300);
+    }
+  }, [latitude, longitude]);
 
   return (
-    <div className="w-full h-full min-h-[300px] rounded-xl overflow-hidden relative z-0 shadow-inner">
-      <MapContainer
-        center={center}
-        zoom={11}
-        scrollWheelZoom={true}
-        style={{ width: '100%', height: '100%' }}
-      >
-        <TileLayer
-          attribution={mapConfig.attribution}
-          url={mapConfig.url}
-          subdomains={mapConfig.subdomains || 'abc'}
-          maxZoom={mapConfig.maxZoom || 19}
-        />
-        <MapRecenter center={center} />
-        <MapEventsHandler onSelect={onSelectCoordinates} />
+    <div className="w-full h-full min-h-[320px] rounded-xl overflow-hidden relative z-0 shadow-inner bg-[#111811]">
+      {/* MapLibre Canvas Container */}
+      <div
+        ref={mapContainerRef}
+        className="w-full h-full min-h-[320px] absolute inset-0"
+      />
 
-        <Marker
-          position={center}
-          icon={markerIcon}
-          draggable={true}
-          eventHandlers={eventHandlers}
-        />
-      </MapContainer>
+      {/* Fallback Error Overlay */}
+      {hasMapError && (
+        <div className="absolute inset-0 z-[500] bg-[#0B100B]/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center text-xs font-mono text-[#9EA493]">
+          <AlertCircle size={24} className="text-[#A9B58D] mb-2 animate-bounce" />
+          <span className="font-bold text-[#F1F1E9] text-sm uppercase">MAP DATA UNAVAILABLE</span>
+          <p className="max-w-xs mt-1 leading-relaxed text-[11px]">
+            Unable to load geographic map data. Please check your connection and try again.
+          </p>
+        </div>
+      )}
 
-      {/* Configured Map Provider / Demo Map Badge */}
-      <div className="absolute top-3 right-3 z-[400] bg-[#0D1012]/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/5 text-[9px] font-mono font-bold text-[#D9DDDE] pointer-events-none shadow-inner">
+      {/* CARTO Badge */}
+      <div className="absolute top-3 right-3 z-[400] bg-[#0B100B]/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-[#A9B58D]/25 text-[9px] font-mono font-bold text-[#F1F1E9] pointer-events-none shadow-inner">
         {mapConfig.badgeLabel}
       </div>
 
       {/* Map Hint Overlay */}
-      <div className="absolute bottom-3 left-3 z-[400] bg-[#0D1012]/90 backdrop-blur-md px-3 py-1 rounded-lg border border-white/5 text-[9px] font-mono text-[#7C8589] pointer-events-none shadow-inner">
+      <div className="absolute bottom-3 left-3 z-[400] bg-[#0B100B]/90 backdrop-blur-md px-3 py-1 rounded-lg border border-[#A9B58D]/25 text-[9px] font-mono text-[#9EA493] pointer-events-none shadow-inner">
         Click map or drag marker to select point
       </div>
     </div>
   );
 };
+
+
+
 
