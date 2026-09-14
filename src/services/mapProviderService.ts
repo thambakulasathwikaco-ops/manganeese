@@ -50,7 +50,7 @@ export class MapProviderService {
       name = 'CARTO Positron';
     }
 
-    const query = apiKey ? `?api_key=${apiKey}` : '';
+    const query = apiKey ? `?key=${apiKey}` : '';
 
     const styleSpec: maplibregl.StyleSpecification = {
       version: 8,

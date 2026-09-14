@@ -158,9 +158,15 @@ export const ManganeseMapPage: React.FC = () => {
         zoom: 11,
         attributionControl: { compact: true },
         transformRequest: (url: string) => {
-          if (activeProvider.apiKey && url.includes('basemaps.cartocdn.com') && !url.includes('api_key=')) {
-            const separator = url.includes('?') ? '&' : '?';
-            return { url: `${url}${separator}api_key=${activeProvider.apiKey}` };
+          if (activeProvider.apiKey && url.includes('basemaps.cartocdn.com')) {
+            try {
+              const requestUrl = new URL(url);
+              requestUrl.searchParams.set('key', activeProvider.apiKey);
+              requestUrl.searchParams.delete('api_key');
+              return { url: requestUrl.toString() };
+            } catch {
+              return { url };
+            }
           }
           return { url };
         }
