@@ -65,7 +65,7 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
     try {
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
-        style: mapConfig.styleUrl, // 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+        style: mapConfig.styleSpec,
         center: [longitude, latitude], // MapLibre expects [lng, lat]
         zoom: 11,
         attributionControl: { compact: true }

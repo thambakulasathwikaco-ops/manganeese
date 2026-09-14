@@ -235,6 +235,28 @@
   background-color: #0B0E09 !important;
 }
 
+/* MapLibre GL JS Canvas & Container Overrides */
+.maplibregl-map {
+  width: 100% !important;
+  height: 100% !important;
+  font-family: 'Inter', system-ui, sans-serif;
+  z-index: 1;
+}
+
+.maplibregl-canvas-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: none !important;
+  outline: none !important;
+}
+
 /* Reduced Motion Accessibility Override */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

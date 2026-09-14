@@ -1,7 +1,9 @@
+import * as maplibregl from 'maplibre-gl';
+
 export interface MapProviderConfig {
   id: 'carto_dark_matter' | 'carto_voyager' | 'carto_positron';
   name: string;
-  styleUrl: string;
+  styleSpec: maplibregl.StyleSpecification;
   attribution: string;
   requiresKey: boolean;
   badgeLabel: string;
@@ -11,20 +13,56 @@ export interface MapProviderConfig {
 
 export class MapProviderService {
   /**
-   * Get configured map provider configuration.
-   * Primary Provider: CARTO Dark Matter (Public or Authenticated vector GL style via MapLibre GL JS)
+   * Get configured CARTO map provider configuration with valid MapLibre StyleSpecification.
+   * Primary Provider: CARTO Dark Matter (Raster Tiles via MapLibre GL JS)
    */
-  getProviderConfig(): MapProviderConfig {
+  getProviderConfig(variant: 'dark' | 'voyager' | 'positron' = 'dark'): MapProviderConfig {
     const apiKey = import.meta.env.VITE_CARTO_API_KEY;
     const hasKey = typeof apiKey === 'string' && apiKey.trim().length > 0 && apiKey !== 'YOUR_CARTO_KEY';
+    const query = hasKey ? `?api_key=${apiKey.trim()}` : '';
 
-    const baseUrl = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
-    const styleUrl = hasKey ? `${baseUrl}?api_key=${apiKey.trim()}` : baseUrl;
+    let tilePath = 'dark_all';
+    let name = 'CARTO Dark Matter';
+    if (variant === 'voyager') {
+      tilePath = 'rastertiles/voyager';
+      name = 'CARTO Voyager';
+    } else if (variant === 'positron') {
+      tilePath = 'light_all';
+      name = 'CARTO Positron';
+    }
+
+    const styleSpec: maplibregl.StyleSpecification = {
+      version: 8,
+      name,
+      sources: {
+        'carto-basemap': {
+          type: 'raster',
+          tiles: [
+            `https://a.basemaps.cartocdn.com/${tilePath}/{z}/{x}/{y}{r}.png${query}`,
+            `https://b.basemaps.cartocdn.com/${tilePath}/{z}/{x}/{y}{r}.png${query}`,
+            `https://c.basemaps.cartocdn.com/${tilePath}/{z}/{x}/{y}{r}.png${query}`,
+            `https://d.basemaps.cartocdn.com/${tilePath}/{z}/{x}/{y}{r}.png${query}`
+          ],
+          tileSize: 256,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
+          maxzoom: 19
+        }
+      },
+      layers: [
+        {
+          id: 'carto-basemap-layer',
+          type: 'raster',
+          source: 'carto-basemap',
+          minzoom: 0,
+          maxzoom: 19
+        }
+      ]
+    };
 
     return {
-      id: 'carto_dark_matter',
-      name: 'CARTO Dark Matter',
-      styleUrl: styleUrl,
+      id: variant === 'voyager' ? 'carto_voyager' : variant === 'positron' ? 'carto_positron' : 'carto_dark_matter',
+      name,
+      styleSpec,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
       requiresKey: false,
       badgeLabel: hasKey ? 'CARTO GIS (AUTH)' : 'CARTO GIS MAP',
@@ -35,6 +73,7 @@ export class MapProviderService {
 }
 
 export const mapProviderService = new MapProviderService();
+
 
 
 

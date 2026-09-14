@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import type { Zone } from '../types';
 import { dataService } from '../services/dataService';
+import { mapProviderService } from '../services/mapProviderService';
 import { LocationIntelligenceSection } from '../components/LocationIntelligenceSection';
 import {
   Search,
@@ -58,32 +59,7 @@ const PROSPECTIVITY_COLORS = {
   }
 };
 
-// Fallback high-performance MapLibre CARTO Raster Style
-const FALLBACK_RASTER_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
-    'carto-basemap': {
-      type: 'raster',
-      tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        'https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-      ],
-      tileSize: 256,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
-    }
-  },
-  layers: [
-    {
-      id: 'carto-basemap-layer',
-      type: 'raster',
-      source: 'carto-basemap',
-      minzoom: 0,
-      maxzoom: 19
-    }
-  ]
-};
+
 
 export const ManganeseMapPage: React.FC = () => {
   const navigate = useNavigate();
@@ -164,13 +140,13 @@ export const ManganeseMapPage: React.FC = () => {
       ? [activeZone.center[1], activeZone.center[0]] // MapLibre uses [lng, lat]
       : [79.7167, 21.5333];
 
-    let targetStyle: string | maplibregl.StyleSpecification = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+    let targetStyle: maplibregl.StyleSpecification = mapProviderService.getProviderConfig('dark').styleSpec;
     if (selectedStyleMode === 'dark') {
-      targetStyle = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+      targetStyle = mapProviderService.getProviderConfig('dark').styleSpec;
     } else if (selectedStyleMode === 'liberty') {
-      targetStyle = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
+      targetStyle = mapProviderService.getProviderConfig('voyager').styleSpec;
     } else if (selectedStyleMode === 'raster') {
-      targetStyle = FALLBACK_RASTER_STYLE;
+      targetStyle = mapProviderService.getProviderConfig('positron').styleSpec;
     }
 
     try {
@@ -659,7 +635,7 @@ export const ManganeseMapPage: React.FC = () => {
                       selectedStyleMode === 'liberty' ? 'bg-emerald-500/20 text-emerald-400 font-bold' : 'text-clay-muted hover:text-white'
                     }`}
                   >
-                    🗺️ OpenFreeMap Liberty
+                    🗺️ CARTO Voyager
                   </button>
                   <button
                     onClick={() => { setSelectedStyleMode('dark'); setIsLayerMenuOpen(false); }}
@@ -667,7 +643,7 @@ export const ManganeseMapPage: React.FC = () => {
                       selectedStyleMode === 'dark' ? 'bg-emerald-500/20 text-emerald-400 font-bold' : 'text-clay-muted hover:text-white'
                     }`}
                   >
-                    🗺️ OpenFreeMap Dark
+                    🗺️ CARTO Dark Matter
                   </button>
                   <button
                     onClick={() => { setSelectedStyleMode('raster'); setIsLayerMenuOpen(false); }}
@@ -675,7 +651,7 @@ export const ManganeseMapPage: React.FC = () => {
                       selectedStyleMode === 'raster' ? 'bg-emerald-500/20 text-emerald-400 font-bold' : 'text-clay-muted hover:text-white'
                     }`}
                   >
-                    🗺️ OpenStreetMap Standard
+                    🗺️ CARTO Positron
                   </button>
                 </div>
               )}
