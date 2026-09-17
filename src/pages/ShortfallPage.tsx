@@ -28,6 +28,8 @@ import {
 import { AnnouncementCard, PrimaryCard, Card } from '../components/ui/Card';
 import type { LocationAnalysisRecord, LocationAnalysisStatus } from '../types';
 
+import { LocationHeaderSelector } from '../components/LocationHeaderSelector';
+
 export const ShortfallPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -157,6 +159,9 @@ export const ShortfallPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Central Location Selector Bar */}
+      <LocationHeaderSelector />
+      
       {/* 1. Top Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-clay-border pb-5">
         <div>

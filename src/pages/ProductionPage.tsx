@@ -31,6 +31,8 @@ import type { ProductionFactors, WeatherRisk } from '../types';
 import { CardGrid, StatCard, PrimaryCard, Card, CardHeader, CardTitle, CardContent, EmptyStateCard } from '../components/ui/Card';
 import { forecastService } from '../services/forecastService';
 
+import { LocationHeaderSelector } from '../components/LocationHeaderSelector';
+
 export const ProductionPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -118,6 +120,8 @@ export const ProductionPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Central Location Header Selector Bar */}
+      <LocationHeaderSelector />
       {/* 4. TOP LOCATION SELECTOR */}
       <Card variant="primary" padding="md" className="border-[#71825B]/40">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

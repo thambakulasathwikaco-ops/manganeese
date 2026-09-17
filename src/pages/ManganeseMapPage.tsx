@@ -61,6 +61,8 @@ const PROSPECTIVITY_COLORS = {
 
 
 
+import { LocationHeaderSelector } from '../components/LocationHeaderSelector';
+
 export const ManganeseMapPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -140,36 +142,22 @@ export const ManganeseMapPage: React.FC = () => {
       ? [activeZone.center[1], activeZone.center[0]] // MapLibre uses [lng, lat]
       : [79.7167, 21.5333];
 
-    let targetStyle: maplibregl.StyleSpecification = mapProviderService.getProviderConfig('dark').styleSpec;
+    let targetStyle: string | maplibregl.StyleSpecification = mapProviderService.getProviderConfig('dark').style;
     if (selectedStyleMode === 'dark') {
-      targetStyle = mapProviderService.getProviderConfig('dark').styleSpec;
+      targetStyle = mapProviderService.getProviderConfig('dark').style;
     } else if (selectedStyleMode === 'liberty') {
-      targetStyle = mapProviderService.getProviderConfig('voyager').styleSpec;
+      targetStyle = mapProviderService.getProviderConfig('voyager').style;
     } else if (selectedStyleMode === 'raster') {
-      targetStyle = mapProviderService.getProviderConfig('positron').styleSpec;
+      targetStyle = mapProviderService.getProviderConfig('positron').style;
     }
 
     try {
-      const activeProvider = mapProviderService.getProviderConfig(selectedStyleMode === 'liberty' ? 'voyager' : selectedStyleMode === 'raster' ? 'positron' : 'dark');
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
         style: targetStyle,
         center: initialCenter,
         zoom: 11,
-        attributionControl: { compact: true },
-        transformRequest: (url: string) => {
-          if (activeProvider.apiKey && url.includes('basemaps.cartocdn.com')) {
-            try {
-              const requestUrl = new URL(url);
-              requestUrl.searchParams.set('key', activeProvider.apiKey);
-              requestUrl.searchParams.delete('api_key');
-              return { url: requestUrl.toString() };
-            } catch {
-              return { url };
-            }
-          }
-          return { url };
-        }
+        attributionControl: { compact: true }
       });
 
       map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
@@ -476,6 +464,8 @@ export const ManganeseMapPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Central Location Header Selector Bar */}
+      <LocationHeaderSelector />
       
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -649,7 +639,7 @@ export const ManganeseMapPage: React.FC = () => {
                       selectedStyleMode === 'liberty' ? 'bg-emerald-500/20 text-emerald-400 font-bold' : 'text-clay-muted hover:text-white'
                     }`}
                   >
-                    🗺️ CARTO Voyager
+                    🗺️ OpenFreeMap Liberty
                   </button>
                   <button
                     onClick={() => { setSelectedStyleMode('dark'); setIsLayerMenuOpen(false); }}
@@ -657,7 +647,7 @@ export const ManganeseMapPage: React.FC = () => {
                       selectedStyleMode === 'dark' ? 'bg-emerald-500/20 text-emerald-400 font-bold' : 'text-clay-muted hover:text-white'
                     }`}
                   >
-                    🗺️ CARTO Dark Matter
+                    🗺️ OpenFreeMap Dark
                   </button>
                   <button
                     onClick={() => { setSelectedStyleMode('raster'); setIsLayerMenuOpen(false); }}
@@ -665,7 +655,7 @@ export const ManganeseMapPage: React.FC = () => {
                       selectedStyleMode === 'raster' ? 'bg-emerald-500/20 text-emerald-400 font-bold' : 'text-clay-muted hover:text-white'
                     }`}
                   >
-                    🗺️ CARTO Positron
+                    🗺️ OpenFreeMap Bright
                   </button>
                 </div>
               )}

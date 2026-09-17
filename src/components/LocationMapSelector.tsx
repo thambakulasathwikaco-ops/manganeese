@@ -7,6 +7,7 @@ import { AlertCircle } from 'lucide-react';
 interface LocationMapSelectorProps {
   latitude: number;
   longitude: number;
+  radiusKm?: number;
   onSelectCoordinates: (lat: number, lon: number) => void;
 }
 
@@ -35,6 +36,7 @@ const createGeoJsonCircle = (center: [number, number], radiusKm: number, points 
 export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
   latitude,
   longitude,
+  radiusKm = 10,
   onSelectCoordinates
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -65,23 +67,10 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
     try {
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
-        style: mapConfig.styleSpec,
+        style: mapConfig.style,
         center: [longitude, latitude], // MapLibre expects [lng, lat]
         zoom: 11,
-        attributionControl: { compact: true },
-        transformRequest: (url: string) => {
-          if (mapConfig.apiKey && url.includes('basemaps.cartocdn.com')) {
-            try {
-              const requestUrl = new URL(url);
-              requestUrl.searchParams.set('key', mapConfig.apiKey);
-              requestUrl.searchParams.delete('api_key');
-              return { url: requestUrl.toString() };
-            } catch {
-              return { url };
-            }
-          }
-          return { url };
-        }
+        attributionControl: { compact: true }
       });
 
       mapRef.current = map;
@@ -116,7 +105,7 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
 
         if (map.getSource('selected-target-radius')) {
           (map.getSource('selected-target-radius') as maplibregl.GeoJSONSource).setData(
-            createGeoJsonCircle([lon, lat], 2.5) as any
+            createGeoJsonCircle([lon, lat], radiusKm) as any
           );
         }
 
@@ -131,7 +120,7 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
 
         if (map.getSource('selected-target-radius')) {
           (map.getSource('selected-target-radius') as maplibregl.GeoJSONSource).setData(
-            createGeoJsonCircle([lon, lat], 2.5) as any
+            createGeoJsonCircle([lon, lat], radiusKm) as any
           );
         }
 
@@ -145,7 +134,7 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
         if (!map.getSource('selected-target-radius')) {
           map.addSource('selected-target-radius', {
             type: 'geojson',
-            data: createGeoJsonCircle([longitude, latitude], 2.5) as any
+            data: createGeoJsonCircle([longitude, latitude], radiusKm) as any
           });
 
           map.addLayer({

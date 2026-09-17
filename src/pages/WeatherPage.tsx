@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import {
   CloudRain,
@@ -35,24 +35,11 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, EmptyStateCard } from '../components/ui/Card';
 import { weatherService, type NormalizedWeatherData } from '../services/weatherService';
 
+import { LocationHeaderSelector } from '../components/LocationHeaderSelector';
+
 export const WeatherPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { siteIntelligenceRecords } = useAppStore();
-
-  // Selected Location ID from URL or default to first record
-  const paramLocationId = searchParams.get('locationId');
-
-  const selectedRecord = React.useMemo(() => {
-    if (!siteIntelligenceRecords || siteIntelligenceRecords.length === 0) return null;
-    if (paramLocationId) {
-      const found = siteIntelligenceRecords.find(
-        (r) => r.locationId === paramLocationId || r.id === paramLocationId
-      );
-      if (found) return found;
-    }
-    return siteIntelligenceRecords[0];
-  }, [siteIntelligenceRecords, paramLocationId]);
+  const { selectedLocation, setSelectedLocation, siteIntelligenceRecords } = useAppStore();
 
   // Weather state
   const [weatherData, setWeatherData] = useState<NormalizedWeatherData | null>(null);
@@ -61,12 +48,9 @@ export const WeatherPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [chartMetric, setChartMetric] = useState<'temp' | 'rainfall' | 'prob' | 'humidity'>('temp');
 
-  // Fetch weather when selected location changes
-  const loadWeather = async (
-    loc: typeof selectedRecord,
-    bypassCache: boolean = false
-  ) => {
-    if (!loc) return;
+  // Fetch weather when selectedLocation changes
+  const loadWeather = async (bypassCache: boolean = false) => {
+    if (!selectedLocation) return;
 
     if (bypassCache) {
       setIsRefreshing(true);
@@ -78,19 +62,19 @@ export const WeatherPage: React.FC = () => {
     try {
       const data = await weatherService.fetchLiveWeather(
         {
-          id: loc.id,
-          locationId: loc.locationId,
-          locationName: loc.locationName,
-          region: loc.region,
-          latitude: loc.latitude,
-          longitude: loc.longitude
+          id: `loc-${selectedLocation.latitude}-${selectedLocation.longitude}`,
+          locationId: `loc-${selectedLocation.latitude}-${selectedLocation.longitude}`,
+          locationName: selectedLocation.name,
+          region: selectedLocation.adminRegion || 'Regional Administrative Zone',
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude
         },
         bypassCache
       );
       setWeatherData(data);
     } catch (err: any) {
       console.error('Weather load error:', err);
-      setError(err?.message || 'Failed to fetch live weather data.');
+      setError('Weather data temporarily unavailable');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -98,18 +82,8 @@ export const WeatherPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (selectedRecord) {
-      loadWeather(selectedRecord, false);
-    }
-  }, [selectedRecord?.id, selectedRecord?.latitude, selectedRecord?.longitude]);
-
-  // Handle dropdown selection change
-  const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const locId = e.target.value;
-    if (locId) {
-      setSearchParams({ locationId: locId });
-    }
-  };
+    loadWeather(false);
+  }, [selectedLocation.latitude, selectedLocation.longitude]);
 
   // Weather Condition Icon Helper
   const getWeatherIcon = (code: number, text: string) => {
@@ -164,7 +138,8 @@ export const WeatherPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* 2. TOP LOCATION SELECTOR */}
+      {/* Central Location Selector Bar */}
+      <LocationHeaderSelector />
       <Card variant="primary" padding="md" className="border-[#71825B]/40">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
@@ -187,12 +162,27 @@ export const WeatherPage: React.FC = () => {
 
           <div className="w-full md:w-80">
             <select
-              value={selectedRecord?.locationId || selectedRecord?.id || ''}
-              onChange={handleLocationChange}
+              value={`${selectedLocation.latitude},${selectedLocation.longitude}`}
+              onChange={(e) => {
+                const [lat, lon] = e.target.value.split(',').map(Number);
+                const matched = siteIntelligenceRecords.find((r) => r.latitude === lat && r.longitude === lon);
+                setSelectedLocation({
+                  latitude: lat,
+                  longitude: lon,
+                  name: matched ? matched.locationName : `${lat}° N, ${lon}° E`,
+                  adminRegion: matched ? matched.region : 'Regional Zone',
+                  source: 'search',
+                  radiusKm: 10,
+                  timestamp: new Date().toISOString()
+                });
+              }}
               className="w-full bg-[#0B0E09] border border-[#71825B]/50 hover:border-[#A4B18A] text-[#F1F2E9] font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-[#A4B18A] transition cursor-pointer shadow-inner"
             >
+              <option value={`${selectedLocation.latitude},${selectedLocation.longitude}`}>
+                Active: {selectedLocation.name} ({selectedLocation.latitude.toFixed(4)}°N, {selectedLocation.longitude.toFixed(4)}°E)
+              </option>
               {siteIntelligenceRecords.map((rec) => (
-                <option key={rec.id} value={rec.locationId || rec.id}>
+                <option key={rec.id} value={`${rec.latitude},${rec.longitude}`}>
                   {rec.locationName} ({rec.region}) • {rec.latitude.toFixed(4)}°N, {rec.longitude.toFixed(4)}°E • AI: {rec.suitabilityScore}%
                 </option>
               ))}
@@ -202,7 +192,7 @@ export const WeatherPage: React.FC = () => {
       </Card>
 
       {/* 3. LOCATION CONTEXT HEADER */}
-      {selectedRecord && (
+      {selectedLocation && (
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#171D12] border border-[#252E1D] p-5 rounded-2xl shadow-lg">
           <div className="flex items-start sm:items-center gap-3.5">
             <div className="p-3 rounded-xl bg-[#0B0E09] border border-[#252E1D] text-[#A4B18A] shrink-0">
@@ -210,20 +200,20 @@ export const WeatherPage: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-extrabold text-[#F1F2E9] tracking-tight">
-                  {selectedRecord.locationName}
+                <h1 className="text-xl font-extrabold text-[#F1F1E9] tracking-tight">
+                  {selectedLocation.name}
                 </h1>
                 <span className="text-xs font-mono font-semibold text-[#A4B18A] bg-[#0B0E09] border border-[#252E1D] px-2 py-0.5 rounded-lg">
-                  {selectedRecord.region}
+                  {selectedLocation.adminRegion || 'Regional Administrative Zone'}
                 </span>
               </div>
               <p className="text-xs font-mono text-[#71825B] mt-1 flex items-center gap-3 flex-wrap">
                 <span>
-                  Coordinates: <strong className="text-[#F1F2E9]">{selectedRecord.latitude.toFixed(4)}° N, {selectedRecord.longitude.toFixed(4)}° E</strong>
+                  Coordinates: <strong className="text-[#F1F1E9]">{selectedLocation.latitude.toFixed(4)}° N, {selectedLocation.longitude.toFixed(4)}° E</strong>
                 </span>
                 <span>•</span>
                 <span>
-                  AI Suitability Score: <strong className="text-[#A4B18A]">{selectedRecord.suitabilityScore}%</strong>
+                  Analysis Radius: <strong className="text-[#A4B18A]">{selectedLocation.radiusKm || 10} km</strong>
                 </span>
               </p>
             </div>
@@ -240,7 +230,7 @@ export const WeatherPage: React.FC = () => {
             </div>
 
             <button
-              onClick={() => selectedRecord && loadWeather(selectedRecord, true)}
+              onClick={() => loadWeather(true)}
               disabled={isLoading || isRefreshing}
               className="btn-clay-primary px-3.5 py-2 text-xs font-mono font-bold text-[#0B0E09] rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition"
               title="Fetch fresh live forecast from Open-Meteo"
@@ -253,7 +243,7 @@ export const WeatherPage: React.FC = () => {
       )}
 
       {/* 4. API FAILURE HANDLING STATE */}
-      {error && selectedRecord && (
+      {error && selectedLocation && (
         <Card variant="primary" className="border-[#8B2626]/50 bg-[#251010]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-2">
             <div className="flex items-start gap-3">
@@ -261,13 +251,13 @@ export const WeatherPage: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-[#FF8888]">Weather data temporarily unavailable</h3>
                 <p className="text-xs text-[#E6B0B0] font-sans mt-1">
-                  Live weather data could not be retrieved for {selectedRecord.locationName}. {error}
+                  Live weather data could not be retrieved for {selectedLocation.name}. {error}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => loadWeather(selectedRecord, true)}
+                onClick={() => loadWeather(true)}
                 className="px-3 py-1.5 bg-[#8B2626] hover:bg-[#A83232] text-white text-xs font-mono font-bold rounded-lg cursor-pointer transition"
               >
                 Retry API

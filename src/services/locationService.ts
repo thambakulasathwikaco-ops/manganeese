@@ -146,6 +146,44 @@ export class LocationService {
   }
 
   /**
+   * Reverse geocode coordinates with detailed administrative region and country breakdown
+   */
+  async reverseGeocodeDetails(
+    lat: number,
+    lon: number
+  ): Promise<{ formattedName: string; adminRegion: string; country: string }> {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'MoilSmartMineAI/1.0'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.address) {
+          const addr = data.address;
+          const admin = addr.state || addr.region || addr.state_district || addr.county || 'Regional Zone';
+          const country = addr.country || 'Territory';
+          const parts = (data.display_name || '').split(',');
+          const formattedName = parts.slice(0, 3).join(',').trim() || `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`;
+
+          return { formattedName, adminRegion: admin, country };
+        }
+      }
+    } catch {
+      // Fallback
+    }
+
+    return {
+      formattedName: `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`,
+      adminRegion: 'Regional Administrative Zone',
+      country: 'Territory'
+    };
+  }
+
+  /**
    * Request GPS coordinates using browser Geolocation API
    */
   getCurrentGpsLocation(): Promise<{ latitude: number; longitude: number; accuracy: number }> {

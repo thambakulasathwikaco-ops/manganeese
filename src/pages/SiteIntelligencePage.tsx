@@ -33,6 +33,8 @@ import {
 import { useAppStore } from '../store/useAppStore';
 import type { LocationAnalysisRecord, LocationAnalysisStatus } from '../types';
 
+import { LocationHeaderSelector } from '../components/LocationHeaderSelector';
+
 type TrendMetricKey =
   | 'suitabilityScore'
   | 'productionPotential'
@@ -238,6 +240,8 @@ export const SiteIntelligencePage: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-16">
+      {/* Central Location Selector */}
+      <LocationHeaderSelector />
       
       {/* 1. Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-clay-border pb-5">

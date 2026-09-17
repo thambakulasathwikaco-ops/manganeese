@@ -10,10 +10,14 @@ import type {
   UploadedDataset,
   WeatherDay,
   WeatherRisk,
-  Zone
+  Zone,
+  SelectedLocation,
+  AnalysisRadiusKm,
+  LocationIntelligenceReport
 } from '../types';
 import { INITIAL_EQUIPMENT, INITIAL_PRODUCTION_FACTORS, INITIAL_SITE_INTELLIGENCE_RECORDS, INITIAL_WEATHER, INITIAL_ZONES } from '../data/initialData';
 import { recommendationService } from '../services/recommendationService';
+import { miningAnalysisService } from '../services/miningAnalysisService';
 
 export interface AppState {
   productionFactors: ProductionFactors;
@@ -33,7 +37,18 @@ export interface AppState {
   searchQuery: string;
   selectedZoneId: string | null;
 
+  // Real Centralized Location Intelligence State
+  selectedLocation: SelectedLocation;
+  analysisRadiusKm: AnalysisRadiusKm;
+  activeLocationReport: LocationIntelligenceReport | null;
+  isAnalyzingLocation: boolean;
+  locationAnalysisStage: string;
+  locationAnalysisProgress: number;
+
   // Actions
+  setSelectedLocation: (location: SelectedLocation) => void;
+  setAnalysisRadiusKm: (radiusKm: AnalysisRadiusKm) => void;
+  analyzeLocation: (lat?: number, lon?: number, radiusKm?: AnalysisRadiusKm, customName?: string) => Promise<LocationIntelligenceReport>;
   updateFactors: (factors: Partial<ProductionFactors>) => void;
   togglePriorityZone: (zoneId: string) => void;
   acceptRecommendation: (id: string) => void;
@@ -103,6 +118,95 @@ export const useAppStore = create<AppState>()(
       activeTimeframe: '30D',
       searchQuery: '',
       selectedZoneId: null,
+      selectedLocation: {
+        latitude: 21.5333,
+        longitude: 79.7167,
+        name: 'Dongri Buzurg, Maharashtra',
+        adminRegion: 'Bhandara / Nagpur District',
+        country: 'India',
+        elevationMeters: 325,
+        source: 'search',
+        radiusKm: 10,
+        timestamp: new Date().toISOString()
+      },
+      analysisRadiusKm: 10,
+      activeLocationReport: null,
+      isAnalyzingLocation: false,
+      locationAnalysisStage: '',
+      locationAnalysisProgress: 0,
+
+      setSelectedLocation: (selectedLocation) => {
+        set({ selectedLocation });
+      },
+
+      setAnalysisRadiusKm: (radiusKm) => {
+        set((state) => ({
+          analysisRadiusKm: radiusKm,
+          selectedLocation: { ...state.selectedLocation, radiusKm }
+        }));
+      },
+
+      analyzeLocation: async (lat, lon, radius, customName) => {
+        const state = get();
+        const targetLat = lat ?? state.selectedLocation.latitude;
+        const targetLon = lon ?? state.selectedLocation.longitude;
+        const targetRadius = radius ?? state.analysisRadiusKm;
+        const targetName = customName ?? state.selectedLocation.name;
+
+        set({
+          isAnalyzingLocation: true,
+          locationAnalysisStage: 'Locating site...',
+          locationAnalysisProgress: 12
+        });
+        await new Promise((r) => setTimeout(r, 200));
+
+        set({
+          locationAnalysisStage: 'Fetching geospatial data...',
+          locationAnalysisProgress: 28
+        });
+        await new Promise((r) => setTimeout(r, 200));
+
+        set({
+          locationAnalysisStage: 'Checking live weather telemetry...',
+          locationAnalysisProgress: 42
+        });
+        await new Promise((r) => setTimeout(r, 200));
+
+        set({
+          locationAnalysisStage: 'Analyzing terrain & DEM slope...',
+          locationAnalysisProgress: 58
+        });
+        await new Promise((r) => setTimeout(r, 200));
+
+        set({
+          locationAnalysisStage: 'Querying Macrostrat geological survey...',
+          locationAnalysisProgress: 75
+        });
+        await new Promise((r) => setTimeout(r, 200));
+
+        set({
+          locationAnalysisStage: 'Processing Sentinel remote sensing indicators...',
+          locationAnalysisProgress: 88
+        });
+        await new Promise((r) => setTimeout(r, 200));
+
+        set({
+          locationAnalysisStage: 'Generating location intelligence report...',
+          locationAnalysisProgress: 96
+        });
+
+        const report = await miningAnalysisService.analyzeLocation(targetLat, targetLon, targetRadius, targetName);
+
+        set({
+          selectedLocation: report.location,
+          activeLocationReport: report,
+          isAnalyzingLocation: false,
+          locationAnalysisStage: 'Analysis complete',
+          locationAnalysisProgress: 100
+        });
+
+        return report;
+      },
 
       updateFactors: (newFactors) => {
         set((state) => {

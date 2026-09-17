@@ -10,6 +10,8 @@ import { useAppStore } from '../store/useAppStore';
 import { Cpu, ArrowRight, ArrowLeft } from 'lucide-react';
 import { CardGrid } from '../components/ui/Card';
 
+import { LocationHeaderSelector } from '../components/LocationHeaderSelector';
+
 export const DashboardPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,6 +36,9 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Central Location Selector Bar */}
+      <LocationHeaderSelector />
+
       {/* Top Banner & Quick Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">

@@ -133,14 +133,140 @@ export interface AiModelInfo {
   lastTrained: string;
 }
 
+export type DataProvenanceType = 'CONFIRMED' | 'DERIVED' | 'ESTIMATE' | 'UNAVAILABLE';
+export type ConfidenceLevel = 'HIGH' | 'MEDIUM' | 'LOW' | 'INSUFFICIENT DATA';
+export type AnalysisRadiusKm = 1 | 5 | 10 | 25 | 50;
+
+export interface DataSourceItem {
+  id: string;
+  sourceName: string;
+  datasetName: string;
+  dataType: string;
+  coverage: string;
+  lastUpdated: string;
+  status: 'LIVE' | 'CACHE' | 'HISTORICAL' | 'UNAVAILABLE';
+  url?: string;
+  notes?: string;
+}
+
 export type LocationSource = 'search' | 'gps' | 'map';
 
 export interface SelectedLocation {
   latitude: number;
   longitude: number;
   name: string;
+  adminRegion?: string;
+  country?: string;
+  elevationMeters?: number | null;
   accuracy?: number;
   source: LocationSource;
+  radiusKm: AnalysisRadiusKm;
+  timestamp: string;
+  dataSources?: DataSourceItem[];
+}
+
+export interface GeologyDataResult {
+  rockType: string;
+  unitName: string;
+  ageEra: string;
+  lithologyDescription: string;
+  manganeseGradeStatus: DataProvenanceType;
+  manganeseGradeValue: string; // e.g. "46.2% (Confirmed)" or "Unavailable - Insufficient authoritative data"
+  reserveQuantityStatus: DataProvenanceType;
+  reserveQuantityValue: string;
+  source: string;
+  isAuthoritative: boolean;
+  notes: string;
+}
+
+export interface GeospatialGisResult {
+  elevationMeters: number | null;
+  terrainSlopeDeg: number;
+  terrainCategory: 'Flat Plain' | 'Rolling Hills' | 'Rugged Ridge' | 'Plateau' | 'Escarpment';
+  nearbyRoadsCount: number;
+  nearestRoadDistanceKm: number;
+  nearbyWaterBodiesCount: number;
+  nearestWaterDistanceKm: number;
+  nearbySettlementsCount: number;
+  nearestSettlementDistanceKm: number;
+  landUseType: string;
+  accessibilityScore: number; // 0-100
+  infrastructureScore: number; // 0-100
+  waterProximityRisk: 'LOW' | 'MEDIUM' | 'HIGH';
+  dataFreshness: string;
+}
+
+export interface SatelliteIndicatorResult {
+  ndviIndex: number; // -1 to 1
+  vegetationDensityText: string;
+  surfaceMoistureIndex: number;
+  terrainRoughnessScore: number;
+  landCoverChangeRisk: 'LOW' | 'MEDIUM' | 'HIGH';
+  acquisitionDate: string;
+  satelliteConstellation: string;
+  label: 'Remote-sensing indicator' | 'Geospatial indicator';
+  provenance: 'DERIVED' | 'UNAVAILABLE';
+  notes: string;
+}
+
+export interface LocationRiskItem {
+  id: string;
+  category: 'Environmental' | 'Weather' | 'Accessibility' | 'Infrastructure' | 'Geological Data Confidence' | 'Operational' | 'Supply';
+  level: RiskLevel;
+  supportingData: string;
+  timestamp: string;
+  confidence: ConfidenceLevel;
+  reason: string;
+}
+
+export interface LocationIntelligenceReport {
+  id: string;
+  location: SelectedLocation;
+  analyzedAt: string;
+  freshnessTag: string; // e.g. "LIVE", "UPDATED 2 MIN AGO"
+  overallSuitabilityScore: number; // 0-100
+  overallConfidence: ConfidenceLevel;
+  
+  // Confirmed & Measured Facts
+  weather: any; // NormalizedWeatherData
+  elevationMeters: number | null;
+  adminRegion: string;
+  country: string;
+
+  // Real GIS & Topography
+  gis: GeospatialGisResult;
+
+  // Real Geological Survey query
+  geology: GeologyDataResult;
+
+  // Satellite Remote Sensing Indicators
+  satellite: SatelliteIndicatorResult;
+
+  // Dynamic Risks
+  risks: LocationRiskItem[];
+
+  // Production Logic (Explicitly actual vs estimate vs unavailable)
+  productionStatus: DataProvenanceType;
+  productionHeadline: string;
+  productionDetails: string;
+
+  // Structured AI Interpretation
+  aiReport: {
+    siteOverview: string;
+    currentConditions: string;
+    geologicalEvidence: string;
+    remoteSensingIndicators: string;
+    infrastructureAndAccess: string;
+    environmentalConditions: string;
+    operationalRisks: string;
+    productionData: string;
+    dataGaps: string[];
+    confidenceAssessment: string;
+    recommendedNextSteps: string[];
+  };
+
+  // Data Provenance List
+  dataSources: DataSourceItem[];
 }
 
 export interface ProspectivityAnalysisResult {
@@ -207,5 +333,7 @@ export interface LocationAnalysisRecord {
   recommendation: string;
   history: LocationAnalysisSnapshot[];
 }
+
+
 
 
